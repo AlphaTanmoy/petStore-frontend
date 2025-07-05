@@ -92,10 +92,16 @@ export class PopupComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.popupService.hide();
+    const redirectTo = this.popupData.redirectTo;
+    this.popupService.hidePopup();
     
-    if (this.popupData.redirectTo) {
-      this.router.navigateByUrl(this.popupData.redirectTo);
+    // Use setTimeout to ensure the popup is hidden before navigation
+    if (redirectTo) {
+      setTimeout(() => {
+        this.router.navigateByUrl(redirectTo).catch(err => {
+          console.error('Navigation error:', err);
+        });
+      }, 100); // Small delay to allow the popup to close smoothly
     }
   }
 }

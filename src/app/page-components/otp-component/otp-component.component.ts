@@ -162,45 +162,59 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.adminService.verifyOtp(this.email, otp).subscribe({
       next: (response: any) => {
-        console.log('Verify OTP Response:', response); // Debug log
-        if (response && response.status) {
+        console.log('Verify OTP Response:', response);
+        this.loading = false;
+        
+        if (response?.status === true) {
           this.adminService.saveSessionData(response);
-          // Redirect based on user type
-          switch (this.userType) {
-            case UserTypes.ROLE_ADMIN:
-              this.router.navigate(['/admin/dashboard']);
-              break;
-            case UserTypes.ROLE_CUSTOMER:
-              this.router.navigate(['/user/dashboard']);
-              break;
-            case UserTypes.ROLE_SELLER:
-              this.router.navigate(['/seller/dashboard']);
-              break;
-            case UserTypes.ROLE_DOCTOR:
-              this.router.navigate(['/doctor/dashboard']);
-              break;
-            case UserTypes.ROLE_CUSTOMER_CARE:
-              this.router.navigate(['/customer-care/dashboard']);
-              break;
-            case UserTypes.ROLE_RAIDER:
-              this.router.navigate(['/raider/dashboard']);
-              break;
-            case UserTypes.ROLE_MASTER:
-              this.router.navigate(['/master/dashboard']);
-              break;
-            default:
-              this.router.navigate(['/']);
-          }
+          
+          // Get the success message from response or use a default
+          const successMessage = response?.message || 'Successfully verified! Redirecting...';
+          
+          // Show success message
+          this.popupService.showPopup('success', 'Success', successMessage);
+          
+          // Navigate after a short delay to show the success message
+          setTimeout(() => {
+            switch (this.userType) {
+              case UserTypes.ROLE_ADMIN:
+                this.router.navigate(['/admin/dashboard']);
+                break;
+              case UserTypes.ROLE_CUSTOMER:
+                this.router.navigate(['/user/dashboard']);
+                break;
+              case UserTypes.ROLE_SELLER:
+                this.router.navigate(['/seller/dashboard']);
+                break;
+              case UserTypes.ROLE_DOCTOR:
+                this.router.navigate(['/doctor/dashboard']);
+                break;
+              case UserTypes.ROLE_CUSTOMER_CARE:
+                this.router.navigate(['/customer-care/dashboard']);
+                break;
+              case UserTypes.ROLE_RAIDER:
+                this.router.navigate(['/raider/dashboard']);
+                break;
+              case UserTypes.ROLE_MASTER:
+                this.router.navigate(['/master/dashboard']);
+                break;
+              default:
+                this.router.navigate(['/']);
+            }
+          }, 1500); // 1.5 second delay before navigation
         } else {
-          // Handle case where status is false but no error
-          const errorMsg = response?.errorMessage || response?.message || 'Verification failed. Please try again.';
+          // Handle case where status is false
+          const errorMsg = response?.errorMessage || 'Verification failed. Please try again.';
           this.popupService.showPopup('error', 'Error', errorMsg);
         }
       },
-      error: (error) => {
-        console.error('Verify OTP Error:', error); // Debug log
+      error: (errorResponse: any) => {
+        console.error('Verify OTP Error:', errorResponse);
         this.loading = false;
-        this.popupService.showPopup('error', 'Error', error);
+        
+        // The error response is the actual error object from the server
+        const errorMessage = errorResponse?.errorMessage || 'Verification failed. Please try again.';
+        this.popupService.showPopup('error', 'Error', errorMessage);
       },
       complete: () => {
         this.loading = false;
@@ -241,9 +255,26 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('OTP Error:', error); // Debug log
+        console.error('Resend OTP Error:', error);
         this.loading = false;
-        this.popupService.showPopup('error', 'Error', error);
+        
+        // Extract error message from the error response
+        let errorMessage = 'Failed to resend OTP. Please try again.';
+        
+        // Try to get the error message from different possible locations
+        const errorObj = error?.error || error;
+        
+        if (typeof errorObj === 'string') {
+          errorMessage = errorObj;
+        } else if (errorObj?.errorMessage) {
+          errorMessage = errorObj.errorMessage;
+        } else if (errorObj?.message) {
+          errorMessage = errorObj.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        }
+        
+        this.popupService.showPopup('error', 'Error', errorMessage);
       }
     });
   }

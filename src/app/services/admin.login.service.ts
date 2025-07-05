@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { 
   AUTH_SEND_OTP,
   ADMIN_SEND_OTP, 
@@ -67,7 +68,26 @@ export class AdminLoginService {
 
   verifyOtp(email: string, otp: string): Observable<any> {
     // Use the specific endpoint for each user type
-    return this.http.post(this.currentEndpoints.signIn, { email, otp });
+    return this.http.post(this.currentEndpoints.signIn, { email, otp }, {
+      observe: 'response'  // Get the full response including status
+    }).pipe(
+      map(response => {
+        // If the response has a body, return it directly
+        if (response.body) {
+          return response.body;
+        }
+        // Otherwise return the response as is
+        return response;
+      }),
+      catchError(error => {
+        // If the error has a response body, return it as an observable
+        if (error.error) {
+          return of(error.error);
+        }
+        // Otherwise rethrow the error
+        return throwError(error);
+      })
+    );
   }
 
   setEmail(email: string) {

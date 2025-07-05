@@ -52,7 +52,18 @@ export class AdminLoginComponent implements OnInit {
         next: (response) => {
           if (response.status) {
             this.adminService.setEmail(email);
-            this.router.navigate(['/verify-otp', { type: this.userType }]);
+            // Show success popup first
+            this.popupService.showPopup(
+              'success',
+              'Success',
+              response.message || 'OTP has been sent to your email.',
+              // Navigate after popup is shown
+              `/verify-otp/${this.userType}`
+            );
+          } else {
+            // Handle case where status is false but no error
+            const errorMsg = response?.errorMessage || response?.message || 'Failed to send OTP. Please try again.';
+            this.popupService.showPopup('error', 'Error', errorMsg);
           }
         },
         error: (error) => {
