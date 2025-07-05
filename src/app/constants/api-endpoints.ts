@@ -16,7 +16,7 @@ export const AUTH_SIGN_IN = AUTH_URL + '/signIn';
 
 // Admin Endpoints
 export const ADMIN_SIGN_IN = ADMIN_URL + '/signIn';
-export const ADMIN_SEND_OTP = ADMIN_URL + '/sent/otp';  // Matches http://localhost:8081/sent/otp
+export const ADMIN_SEND_OTP = ADMIN_URL + '/sent/otp';
 
 // User Endpoints
 export const USER_SIGN_IN = USER_URL + '/signIn';
