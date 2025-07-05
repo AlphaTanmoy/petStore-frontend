@@ -1,0 +1,16 @@
+<div class="loader-container" [ngClass]="loaderClasses">
+  <div class="paw-loader">
+    <!-- Large center pad -->
+    <div class="paw-pad" [style.background-color]="color"></div>
+    
+    <!-- Four toe pads -->
+    <div class="toe-pad top-left" [style.background-color]="color"></div>
+    <div class="toe-pad top-right" [style.background-color]="color"></div>
+    <div class="toe-pad bottom-left" [style.background-color]="color"></div>
+    <div class="toe-pad bottom-right" [style.background-color]="color"></div>
+  </div>
+  
+  <div class="loader-message" *ngIf="showMessage">
+    {{ message }}
+  </div>
+</div>

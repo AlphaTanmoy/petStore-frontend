@@ -1,0 +1,250 @@
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~bootstrap-icons/font/bootstrap-icons.css';
+
+/* Theme Color Variables */
+:root {
+  /* Primary Colors */
+  --primary-color: #4361ee;
+  --primary-hover: #3a56d4;
+  --primary-light: #eef2ff;
+  
+  /* Secondary Colors */
+  --secondary-color: #6c757d;
+  --secondary-hover: #5a6268;
+  --secondary-light: #f8f9fa;
+  
+  /* Success Colors */
+  --success-color: #28a745;
+  --success-hover: #218838;
+  --success-light: #d4edda;
+  
+  /* Warning Colors */
+  --warning-color: #ffc107;
+  --warning-hover: #e0a800;
+  --warning-light: #fff3cd;
+  
+  /* Danger/Delete Colors */
+  --danger-color: #dc3545;
+  --danger-hover: #c82333;
+  --danger-light: #f8d7da;
+  
+  /* Info Colors */
+  --info-color: #17a2b8;
+  --info-hover: #138496;
+  --info-light: #d1ecf1;
+  
+  /* Dark/Light */
+  --dark-color: #343a40;
+  --light-color: #f8f9fa;
+  
+  /* Border Radius */
+  --border-radius-sm: 0.25rem;
+  --border-radius: 0.375rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 1rem;
+  
+  /* Box Shadow */
+  --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+/* Override Bootstrap Theme Colors */
+:root {
+  --bs-primary: var(--primary-color);
+  --bs-primary-rgb: 67, 97, 238;
+  --bs-secondary: var(--secondary-color);
+  --bs-success: var(--success-color);
+  --bs-warning: var(--warning-color);
+  --bs-danger: var(--danger-color);
+  --bs-info: var(--info-color);
+  --bs-light: var(--light-color);
+  --bs-dark: var(--dark-color);
+}
+
+/* Button Styles */
+.btn {
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.875rem;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.btn-secondary:hover, .btn-secondary:focus {
+  background-color: var(--secondary-hover);
+  border-color: var(--secondary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+}
+
+/* Success Button */
+.btn-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.btn-success:hover, .btn-success:focus {
+  background-color: var(--success-hover);
+  border-color: var(--success-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+}
+
+/* Warning Button */
+.btn-warning {
+  background-color: var(--warning-color);
+  border-color: var(--warning-color);
+  color: var(--dark-color);
+}
+
+.btn-warning:hover, .btn-warning:focus {
+  background-color: var(--warning-hover);
+  border-color: var(--warning-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+  color: var(--dark-color);
+}
+
+/* Danger Button */
+.btn-danger {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.btn-danger:hover, .btn-danger:focus {
+  background-color: var(--danger-hover);
+  border-color: var(--danger-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+}
+
+/* Info Button */
+.btn-info {
+  background-color: var(--info-color);
+  border-color: var(--info-color);
+  color: white;
+}
+
+.btn-info:hover, .btn-info:focus {
+  background-color: var(--info-hover);
+  border-color: var(--info-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+  color: white;
+}
+
+/* Light Button */
+.btn-light {
+  background-color: var(--light-color);
+  border-color: #dee2e6;
+  color: var(--dark-color);
+}
+
+/* Dark Button */
+.btn-dark {
+  background-color: var(--dark-color);
+  border-color: var(--dark-color);
+}
+
+/* Outline Buttons */
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Button with Icons */
+.btn i {
+  margin-right: 0.5rem;
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Hover effects */
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+
+/* Pulse animation for important elements */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Custom button styles */
+.btn-custom {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Custom card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  border-color: #0d6efd;
+}

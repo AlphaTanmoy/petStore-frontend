@@ -1,0 +1,50 @@
+<!-- Loader -->
+<app-loader *ngIf="isLoading" [message]="'Loading your pet paradise...'" [size]="'large'"></app-loader>
+
+<!-- Main Content -->
+<div class="container my-5" *ngIf="!isLoading">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8 text-center">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="display-4 fw-bold text-primary mb-4">Under Development</h1>
+          <p class="lead text-muted mb-5">We're working hard to bring you an amazing experience. Please check back soon!</p>
+          
+          <!-- Countdown Timer -->
+          <div class="countdown-timer mb-4">
+            <h3 class="text-muted mb-4">Time until launch:</h3>
+            <div class="d-flex justify-content-center gap-3 gap-md-4">
+              <div class="text-center">
+                <div class="display-4 fw-bold text-primary">{{ months }}</div>
+                <div class="text-muted">Months</div>
+              </div>
+              <div class="text-center">
+                <div class="display-4 fw-bold text-primary">{{ days }}</div>
+                <div class="text-muted">Days</div>
+              </div>
+              <div class="text-center">
+                <div class="display-4 fw-bold text-primary">{{ hours }}</div>
+                <div class="text-muted">Hours</div>
+              </div>
+              <div class="text-center">
+                <div class="display-4 fw-bold text-primary">{{ minutes }}</div>
+                <div class="text-muted">Minutes</div>
+              </div>
+              <div class="text-center">
+                <div class="display-4 fw-bold text-primary">{{ seconds }}</div>
+                <div class="text-muted">Seconds</div>
+              </div>
+            </div>
+          </div>
+         
+          <div class="mt-5">
+            <p class="text-muted">
+              <i class="bi bi-info-circle me-2"></i>
+              We appreciate your patience while we make improvements to our website.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

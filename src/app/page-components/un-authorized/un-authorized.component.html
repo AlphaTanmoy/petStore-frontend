@@ -1,0 +1,37 @@
+<div class="container px-3">
+    <div class="row min-vh-100 align-items-center justify-content-center g-0">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <div class="card card-hover p-3 p-md-4 shadow-sm fade-in">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-lock text-danger" style="font-size: clamp(3.5rem, 10vw, 5rem);"></i>
+                    </div>
+
+                    <h1 class="display-5 fw-bold mb-3">Access Denied</h1>
+
+                    <p class="lead text-muted mb-4 mb-lg-5">
+                        You don't have permission to access this page.
+                        <span class="d-block d-md-inline">Please contact your administrator if you believe this is an
+                            error.</span>
+                    </p>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-center">
+                        <button class="btn btn-primary btn-custom" (click)="goBack()" style="min-width: 160px;">
+                            <i class="bi bi-arrow-left me-1"></i> Go Back
+                        </button>
+                        <button class="btn btn-outline-primary btn-custom" (click)="goToHome()"
+                            style="min-width: 160px;">
+                            <i class="bi bi-house me-1"></i> Home
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="#" class="text-decoration-none hover-scale">
+                        <i class="bi bi-headset me-1"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

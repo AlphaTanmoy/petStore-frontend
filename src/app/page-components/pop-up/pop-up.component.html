@@ -1,0 +1,35 @@
+<div class="modal-backdrop fade show" *ngIf="isVisible"></div>
+
+<div class="modal fade show d-block" 
+     [ngClass]="{'d-block': isVisible}" 
+     tabindex="-1" 
+     role="dialog"
+     [attr.aria-hidden]="!isVisible"
+     [ngStyle]="{'display': isVisible ? 'block' : 'none'}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" [ngClass]="getBorderClass()">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2" [ngClass]="getTextColorClass()">
+          <i class="bi" [ngClass]="getIconClass()"></i>
+          {{ popupData.title }}
+        </h5>
+        <button type="button" 
+                class="btn-close" 
+                (click)="close()" 
+                aria-label="Close">
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">{{ popupData.message }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" 
+                class="btn btn-sm" 
+                [ngClass]="getButtonClass()"
+                (click)="close()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

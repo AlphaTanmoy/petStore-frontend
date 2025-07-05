@@ -1,0 +1,74 @@
+<div class="date-picker-container" [class.open]="showCalendar">
+  <div class="date-input-container" (click)="toggleCalendar()">
+    <input 
+      #dateInput
+      type="text"
+      class="form-control"
+      [value]="selectedDate ? (selectedDate | date: 'mediumDate') : ''"
+      [placeholder]="placeholder"
+      readonly
+    >
+    <span class="calendar-icon">
+      <i class="bi bi-calendar3"></i>
+    </span>
+    <span *ngIf="selectedDate" class="clear-icon" (click)="$event.stopPropagation(); clearDate()">
+      <i class="bi bi-x-lg"></i>
+    </span>
+  </div>
+
+  <div #calendar *ngIf="showCalendar" class="calendar-container" (click)="$event.stopPropagation()">
+    <div class="calendar-header">
+      <div class="navigation-buttons">
+        <button type="button" class="btn btn-icon" (click)="prevYear()" title="Previous Year">
+          <i class="bi bi-chevron-double-left"></i>
+        </button>
+        <button type="button" class="btn btn-icon" (click)="prevMonth()" title="Previous Month">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      </div>
+      
+      <div class="month-year-display">
+        <span class="month">{{ monthNames[currentMonth.getMonth()] }}</span>
+        <span class="year">{{ currentMonth.getFullYear() }}</span>
+      </div>
+      
+      <div class="navigation-buttons">
+        <button type="button" class="btn btn-icon" (click)="nextMonth()" title="Next Month">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <button type="button" class="btn btn-icon" (click)="nextYear()" title="Next Year">
+          <i class="bi bi-chevron-double-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="weekdays">
+      <div *ngFor="let day of weekDays" class="weekday">{{ day }}</div>
+    </div>
+
+    <div class="days">
+      <div 
+        *ngFor="let week of weeks; let weekIndex = index" 
+        class="week"
+      >
+        <div 
+          *ngFor="let day of week; let dayIndex = index" 
+          class="day"
+          [class.today]="isToday(day)"
+          [class.selected]="isSelected(day)"
+          [class.disabled]="isDateDisabled(day)"
+          [class.other-month]="!isCurrentMonth(day)"
+          (click)="selectDate(day)"
+        >
+          {{ day.getDate() }}
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-footer">
+      <button type="button" class="btn btn-sm btn-link" (click)="selectToday()">
+        Today
+      </button>
+    </div>
+  </div>
+</div>
