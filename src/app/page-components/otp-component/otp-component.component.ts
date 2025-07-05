@@ -38,17 +38,25 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    // Get email from service first (in case it was set before navigation)
-    this.adminService.getEmail().subscribe(email => {
-      if (email) {
-        this.email = email;
+    // Get user type from route params
+    this.route.params.subscribe((params: { [key: string]: string }) => {
+      if (params['type']) {
+        this.userType = params['type'] as UserTypes;
+        this.adminService.setAuthType(this.userType);
+      }
+    });
+
+    // Get email from query params first
+    this.route.queryParams.subscribe((queryParams: { [key: string]: string }) => {
+      if (queryParams['email']) {
+        this.email = decodeURIComponent(queryParams['email']);
+        // Save to service for future use
+        this.adminService.setEmail(this.email);
       } else {
-        // If not in service, try to get from query params
-        this.route.queryParams.subscribe((queryParams: { [key: string]: string }) => {
-          this.email = queryParams['email'] || '';
-          // Save to service for future use
-          if (this.email) {
-            this.adminService.setEmail(this.email);
+        // Fallback to service if not in query params
+        this.adminService.getEmail().subscribe(email => {
+          if (email) {
+            this.email = email;
           }
         });
       }
@@ -231,14 +239,15 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     this.loading = true;
-    // Update auth type before sending OTP
+    // Ensure auth type is set correctly
     this.adminService.setAuthType(this.userType);
-    this.adminService.setEmail(this.email);
     
+    // Send OTP with the current email
     this.adminService.sendOtp(this.email).subscribe({
       next: (response: any) => {
-        console.log('OTP Response:', response); // Debug log
-        if (response && response.status) {
+        console.log('Resend OTP Response:', response);
+        
+        if (response?.status) {
           this.popupService.showPopup(
             'success',
             'Success',
@@ -248,33 +257,20 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.resendTimer = 60;
           this.startResendTimer();
         } else {
-          // Handle case where status is false but no error
+          // Handle case where status is false
           const errorMsg = response?.errorMessage || response?.message || 'Failed to resend OTP. Please try again.';
           this.popupService.showPopup('error', 'Error', errorMsg);
         }
-        this.loading = false;
       },
       error: (error) => {
         console.error('Resend OTP Error:', error);
-        this.loading = false;
-        
-        // Extract error message from the error response
-        let errorMessage = 'Failed to resend OTP. Please try again.';
-        
-        // Try to get the error message from different possible locations
-        const errorObj = error?.error || error;
-        
-        if (typeof errorObj === 'string') {
-          errorMessage = errorObj;
-        } else if (errorObj?.errorMessage) {
-          errorMessage = errorObj.errorMessage;
-        } else if (errorObj?.message) {
-          errorMessage = errorObj.message;
-        } else if (error?.message) {
-          errorMessage = error.message;
-        }
-        
+        // The error interceptor should have already handled the error format
+        const errorMessage = error?.errorMessage || error?.message || 'Failed to resend OTP. Please try again.';
         this.popupService.showPopup('error', 'Error', errorMessage);
+        this.loading = false;
+      },
+      complete: () => {
+        this.loading = false;
       }
     });
   }

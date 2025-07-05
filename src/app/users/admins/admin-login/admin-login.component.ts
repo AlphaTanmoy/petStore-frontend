@@ -57,8 +57,8 @@ export class AdminLoginComponent implements OnInit {
               'success',
               'Success',
               response.message || 'OTP has been sent to your email.',
-              // Navigate after popup is shown
-              `/verify-otp/${this.userType}`
+              // Navigate after popup is shown with email as query parameter
+              `/verify-otp/${this.userType}?email=${encodeURIComponent(email)}`
             );
           } else {
             // Handle case where status is false but no error
