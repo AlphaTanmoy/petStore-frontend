@@ -1,0 +1,58 @@
+/* OTP Container */
+.otp-inputs {
+  margin: 1.5rem 0;
+}
+
+.otp-inputs input {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+}
+
+.otp-inputs input:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+/* Loading state */
+.btn.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn.loading:after {
+  content: '';
+  position: absolute;
+  width: 1.5em;
+  height: 1.5em;
+  top: 50%;
+  left: 50%;
+  margin: -0.75em 0 0 -0.75em;
+  border: 2px solid #fff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .otp-inputs input {
+    width: 40px !important;
+    height: 50px !important;
+    font-size: 1.25rem !important;
+  }
+}
+
+/* Disabled state */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}

@@ -6,45 +6,89 @@ import { HomeComponent } from './page-components/home/home.component';
 import { DatePickerDemoComponent } from './page-components/date-picker/date-picker-demo.component';
 import { SingleSelectDemoComponent } from './page-components/single-select/single-select-demo.component';
 import { MultiSelectDemoComponent } from './page-components/multi-select/multi-select-demo.component';
+import { AdminLoginComponent } from './users/admins/admin-login/admin-login.component';
+import { MasterLoginComponent } from './users/master/master-login/master-login.component';
+import { AdminDashboardComponent } from './users/admins/admin-dashboard/admin-dashboard.component';
+import { AuthGuardService } from './services/auth-guard.service';
+import { UserTypes } from './constants/enums/user-types';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    redirectTo: '/home', 
-    pathMatch: 'full' 
+  {
+    path: '',
+    redirectTo: '/home',
+    pathMatch: 'full'
   },
-  { 
-    path: 'otp', 
-    component: OtpComponentComponent, 
-    title: 'OTP Verification' 
+  {
+    path: 'otp',
+    component: OtpComponentComponent,
+    title: 'OTP Verification'
   },
-  { 
-    path: 'unauthorized', 
-    component: UnAuthorizedComponent, 
-    title: 'Unauthorized' 
+  {
+    path: 'verify-otp',
+    component: OtpComponentComponent,
+    title: 'Verify OTP'
   },
-  { 
-    path: 'home', 
-    component: HomeComponent, 
-    title: 'Home' 
+  {
+    path: 'verify-otp/:type',
+    component: OtpComponentComponent,
+    title: 'Verify OTP'
   },
-  { 
-    path: 'date-picker-demo', 
-    component: DatePickerDemoComponent, 
-    title: 'Date Picker Demo' 
+  {
+    path: 'unauthorized',
+    component: UnAuthorizedComponent,
+    title: 'Unauthorized'
   },
-  { 
-    path: 'single-select-demo', 
-    component: SingleSelectDemoComponent, 
-    title: 'Single Select Demo' 
+  {
+    path: 'home',
+    component: HomeComponent,
+    title: 'Home'
   },
-  { 
-    path: 'multi-select-demo', 
-    component: MultiSelectDemoComponent, 
-    title: 'Multi Select Demo' 
+  {
+    path: 'date-picker-demo',
+    component: DatePickerDemoComponent,
+    title: 'Date Picker Demo'
   },
-  { 
-    path: '**', 
+  {
+    path: 'single-select-demo',
+    component: SingleSelectDemoComponent,
+    title: 'Single Select Demo'
+  },
+  {
+    path: 'multi-select-demo',
+    component: MultiSelectDemoComponent,
+    title: 'Multi Select Demo'
+  },
+
+  {
+    path: 'admin-login',
+    component: AdminLoginComponent,
+    title: 'Admin Login'
+  },
+  {
+    path: 'admin-dashboard',
+    component: AdminDashboardComponent,
+    title: 'Admin Dashboard',
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: [UserTypes.ROLE_ADMIN] }
+  },
+
+
+
+  {
+    path: 'master-login',
+    component: MasterLoginComponent,
+    title: 'Master Login'
+  },
+
+
+
+
+
+
+
+  
+  {
+    path: '**',
     component: ErrorPageComponent,
     title: 'Page Not Found'
   }

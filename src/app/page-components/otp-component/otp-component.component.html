@@ -1,29 +1,54 @@
-<div class="container mt-5">
+<div class="container">
   <div class="row justify-content-center">
-    <div class="col-md-6 text-center">
-      <h3 class="mb-4">Enter OTP</h3>
-      <div class="d-flex justify-content-center gap-2 mb-4">
-        <input *ngFor="let digit of otp; let i = index" 
-               type="text" 
-               [(ngModel)]="otp[i]" 
-               (input)="handleOtpChange(i, $event)"
-               id="{{'otp-' + i}}"
-               class="form-control text-center"
-               style="width: 50px; height: 50px; font-size: 24px;"
-               [attr.autofocus]="i === 0">
-      </div>
-      <div class="d-flex justify-content-center gap-3">
-        <button class="btn btn-primary" 
-                (click)="sendOtp()"
-                [disabled]="isSendDisabled">
-          Visible OTP
-        </button>
-        <button class="btn btn-secondary" 
-                (click)="resendOtp()"
-                [disabled]="isResendDisabled">
-          {{ isResendDisabled ? 'Resend OTP After ' + resendTimer + 's' : 'Resend OTP' }}
-        </button>
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm mt-5">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h2 class="h4 font-weight-bold text-primary">Verify OTP</h2>
+            <p class="text-muted">We've sent a 6-digit OTP to {{email}}</p>
+          </div>
+          
+          <div class="otp-inputs d-flex justify-content-between mb-4">
+            <ng-container *ngFor="let _ of [0,1,2,3,4,5]; let i = index">
+              <input type="text"
+                    maxlength="1"
+                    [(ngModel)]="otp[i]"
+                    (keyup)="onKeyUp($event, i)"
+                    (paste)="onPaste($event)"
+                    (input)="onInput($event, i)"
+                    [disabled]="loading"
+                    [attr.data-index]="i"
+                    class="form-control text-center mx-1"
+                    style="width: 45px; height: 60px; font-size: 1.5rem;"
+                    autocomplete="one-time-code"
+                    inputmode="numeric"
+                    pattern="[0-9]*">
+            </ng-container>
+          </div>
+          
+          <div class="d-grid gap-2 mb-3">
+            <button type="button" 
+                    class="btn btn-primary btn-lg" 
+                    (click)="verifyOtp()"
+                    [disabled]="!isOtpComplete() || loading"
+                    [class.loading]="loading">
+              <span *ngIf="!loading">Verify OTP</span>
+              <span *ngIf="loading">Verifying...</span>
+            </button>
+          </div>
+          
+          <div class="text-center">
+            <button type="button" 
+                    class="btn btn-link p-0" 
+                    (click)="resendOtp()"
+                    [disabled]="isResendDisabled || loading">
+              Resend OTP <span *ngIf="isResendDisabled" class="text-muted">(in {{ resendTimer }}s)</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+  
+  <app-popup></app-popup>
 </div>

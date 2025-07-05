@@ -1,0 +1,56 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm mt-5">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h2 class="h4 font-weight-bold text-primary">Admin Login</h2>
+            <p class="text-muted">Enter your email to receive OTP</p>
+          </div>
+          
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label for="email" class="form-label fw-medium">Email address</label>
+              <input 
+                type="email" 
+                id="email"
+                formControlName="email"
+                class="form-control form-control-lg"
+                [ngClass]="{'is-invalid': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}"
+                placeholder="Enter your email"
+              >
+              <div *ngIf="loginForm.get('email')?.errors?.['required'] && loginForm.get('email')?.touched" 
+                  class="invalid-feedback">
+                Email is required
+              </div>
+              <div *ngIf="loginForm.get('email')?.errors?.['email'] && loginForm.get('email')?.touched" 
+                  class="invalid-feedback">
+                Please enter a valid email address
+              </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg" 
+                [disabled]="loading || !loginForm.valid"
+                [class.btn-loading]="loading"
+              >
+                <span *ngIf="!loading">Send OTP</span>
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                <span *ngIf="loading">Sending...</span>
+              </button>
+            </div>
+          </form>
+          
+          <div class="text-center mt-3">
+            <a routerLink="/forgot-password" class="text-decoration-none small">Forgot password?</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Popup Component -->
+  <app-popup></app-popup>
+</div>
