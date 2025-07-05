@@ -1,0 +1,5 @@
+export enum CreationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  NOT_APPLICABLE = 'NOT_APPLICABLE'
+}

@@ -1,0 +1,5 @@
+export enum ApprovalTypes {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  ACTION_NOT_TAKEN = 'ACTION_NOT_TAKEN'
+}
