@@ -1,12 +1,18 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Main navigation">
   <div class="container-fluid">
     <a 
-      class="navbar-brand" 
+      class="navbar-brand d-flex align-items-center" 
       routerLink="/"
       (click)="onNavItemClick($event, createNavbarItem({ menuName: 'Home', menuLink: '/', doHaveRedirectionLink: true }))"
       aria-label="Home"
     >
-      PetStore
+      <img 
+        src="logo-white.png" 
+        alt="PetStore Logo" 
+        height="40" 
+        class="d-inline-block align-text-top me-2"
+      >
+      <span>PetStore</span>
     </a>
     <button 
       class="navbar-toggler" 
