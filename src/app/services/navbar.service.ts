@@ -27,22 +27,64 @@ export class NavbarService {
   }
 
   getNavbarItems(): Observable<NavbarItem[]> {
-    // Return cached items if available
-    if (this.cachedNavbarItems) {
-      return of([...this.cachedNavbarItems]);
-    }
-
-    // Otherwise, fetch fresh data
+    console.log('Fetching navbar items...');
+    
+    // Clear cache to force fresh data
+    this.cachedNavbarItems = null;
+    
+    // Fetch fresh data
+    console.log('Fetching navbar items from API...');
     return this.http.get<NavbarApiResponse>(this.apiUrl, {
       headers: this.getAuthHeader()
     }).pipe(
       map(response => {
-        if (response.status && response.data) {
-          // Add isExpanded property for UI toggling
-          const items = this.addExpandedProperty(response.data);
-          this.cachedNavbarItems = items; // Cache in memory only
+        console.log('Navbar API Response:', response);
+        if (response && response.status && response.data) {
+          // Transform the data to match our NavbarItem interface
+          const items = response.data.map(item => {
+            // Ensure path is always a string (use empty string if menuLink is null)
+            const path = item.menuLink || '';
+            const menuName = item.menuName || 'Unnamed Menu';
+            
+            // Ensure listOfSubMenu is always an array
+            const listOfSubMenu = Array.isArray(item.listOfSubMenu) ? item.listOfSubMenu : [];
+            
+            const subMenu = listOfSubMenu.map(subItem => ({
+              ...subItem,
+              menuName: subItem.menuName || 'Unnamed Submenu',
+              path: subItem.menuLink || '',
+              isExpanded: false,
+              isActive: false,
+              listOfSubMenu: [] // Ensure nested submenus are also properly initialized
+            }));
+
+            const processedItem: NavbarItem = {
+              ...item,
+              menuName: menuName,
+              path: path,
+              isExpanded: false,
+              isActive: false,
+              listOfSubMenu: subMenu
+            };
+            
+            // Safe access to listOfSubMenu since we've ensured it's an array
+            const subMenuCount = processedItem.listOfSubMenu?.length || 0;
+            
+            console.log('Processed menu item:', {
+              name: processedItem.menuName,
+              path: processedItem.path,
+              hasSubmenu: subMenuCount > 0,
+              submenuCount: subMenuCount
+            });
+            
+            return processedItem;
+          });
+          
+          console.log('Total processed items:', items.length);
+          this.cachedNavbarItems = items;
           return items;
         }
+        console.warn('Invalid navbar response format:', response);
         return [];
       }),
       catchError(error => {

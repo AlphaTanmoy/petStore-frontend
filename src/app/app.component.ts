@@ -1,53 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
-import { PopupComponent } from './page-components/pop-up/pop-up.component';
-import { NavbarComponent } from './layout/navbar/navbar.component';
+import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 import { UserTypes } from './constants/enums/user-types';
+import { VerticalLayoutComponent } from './layout/vertical-layout/vertical-layout.component';
+import { HorizontalLayoutComponent } from './layout/horizontal-layout/horizontal-layout.component';
+import { PopupComponent } from './page-components/pop-up/pop-up.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
-    RouterOutlet, 
-    PopupComponent,
-    NavbarComponent
+    RouterOutlet,
+    VerticalLayoutComponent,
+    HorizontalLayoutComponent,
+    PopupComponent
   ],
-  template: `
-    <app-navbar></app-navbar>
-    <main class="main-content">
-      <router-outlet></router-outlet>
-    </main>
-    <app-popup></app-popup>
-  `,
-  styles: [`
-    :host {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    
-    .main-content {
-      flex: 1;
-      padding: 2rem;
-      background-color: #f8f9fa;
-    }
-    
-    @media (max-width: 768px) {
-      .main-content {
-        padding: 1rem;
-      }
-    }
-  `]
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   title = 'pet-store-frontend';
+  isAuthenticated = false;
 
   constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
+    // Subscribe to auth state changes
+    this.authService.currentUser$.subscribe(({ isAuthenticated }) => {
+      this.isAuthenticated = isAuthenticated;
+    });
     // Initialize auth state from localStorage if available
     const token = localStorage.getItem('token');
     if (token) {
