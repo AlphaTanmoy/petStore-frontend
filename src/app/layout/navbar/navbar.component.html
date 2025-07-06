@@ -1,0 +1,118 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/">PetStore</a>
+    <button 
+      class="navbar-toggler" 
+      type="button" 
+      (click)="isCollapsed = !isCollapsed" 
+      [attr.aria-expanded]="!isCollapsed"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" [ngbCollapse]="isCollapsed">
+      <ul class="navbar-nav me-auto">
+        @for (item of navbarItems; track item.id) {
+          <li 
+            class="nav-item" 
+            [class.dropdown]="item.listOfSubMenu && item.listOfSubMenu.length > 0"
+            [class.show]="item.isExpanded"
+            (mouseenter)="item.listOfSubMenu && item.listOfSubMenu.length > 0 ? item.isExpanded = true : null"
+            (mouseleave)="item.listOfSubMenu && item.listOfSubMenu.length > 0 ? item.isExpanded = false : null"
+          >
+            @if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
+              <a 
+                class="nav-link dropdown-toggle" 
+                href="#" 
+                role="button" 
+                (click)="toggleSubMenu(item, $event)"
+                [class.active]="item.isActive"
+              >
+                @if (item.svgFileDataLink) {
+                  <img 
+                    [src]="getSafeSvg(item.svgFileDataLink)" 
+                    [alt]="item.menuName + ' icon'" 
+                    class="me-2"
+                    style="width: 20px; height: 20px;"
+                  >
+                }
+                {{ item.menuName }}
+              </a>
+              <ul class="dropdown-menu" [class.show]="item.isExpanded">
+                @for (subItem of item.listOfSubMenu; track subItem.id) {
+                  <li>
+                    <a 
+                      class="dropdown-item" 
+                      [routerLink]="subItem.menuLink"
+                      routerLinkActive="active"
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="isCollapsed = true"
+                    >
+                      @if (subItem.svgFileDataLink) {
+                        <img 
+                          [src]="getSafeSvg(subItem.svgFileDataLink)" 
+                          [alt]="subItem.menuName + ' icon'" 
+                          class="me-2"
+                          style="width: 16px; height: 16px;"
+                        >
+                      }
+                      {{ subItem.menuName }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            } @else if (item.menuLink) {
+              <a 
+                class="nav-link" 
+                [routerLink]="item.menuLink" 
+                routerLinkActive="active" 
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="isCollapsed = true"
+              >
+                @if (item.svgFileDataLink) {
+                  <img 
+                    [src]="getSafeSvg(item.svgFileDataLink)" 
+                    [alt]="item.menuName + ' icon'" 
+                    class="me-2"
+                    style="width: 20px; height: 20px;"
+                  >
+                }
+                {{ item.menuName }}
+              </a>
+            } @else {
+              <span class="nav-link">
+                @if (item.svgFileDataLink) {
+                  <img 
+                    [src]="getSafeSvg(item.svgFileDataLink)" 
+                    [alt]="item.menuName + ' icon'" 
+                    class="me-2"
+                    style="width: 20px; height: 20px;"
+                  >
+                }
+                {{ item.menuName }}
+              </span>
+            }
+          </li>
+        }
+      </ul>
+      
+      <div class="d-flex">
+        @if (authService.isAuthenticated) {
+          <div class="d-flex align-items-center">
+            <span class="text-light me-3">
+              Welcome, {{ (authService.currentUserRole || '').toLowerCase() | titlecase }}
+            </span>
+            <button class="btn btn-outline-light" (click)="logout()">
+              Logout
+            </button>
+          </div>
+        } @else {
+          <a class="btn btn-primary" routerLink="/login" (click)="isCollapsed = true">
+            Login
+          </a>
+        }
+      </div>
+    </div>
+  </div>
+</nav>

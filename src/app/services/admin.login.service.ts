@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { LoginResponse } from '../interfaces/loginresponse.interface';
 import { 
-  AUTH_SEND_OTP,
   ADMIN_SEND_OTP, 
   ADMIN_SIGN_IN,
   USER_SEND_OTP,
@@ -20,6 +20,7 @@ import {
   MASTER_SIGN_IN
 } from '../constants/api-endpoints';
 import { UserTypes } from '../constants/enums/user-types';
+import { AuthService } from './auth.service';
 
 type EndpointPair = {
   sendOtp: string;
@@ -45,64 +46,140 @@ export class AdminLoginService {
 
   private currentEndpoints = this.endpoints[this.userType];
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) { }
 
-  setAuthType(type: UserTypes) {
+  /**
+   * Set the authentication type (user role) for the login process
+   * @param type The user role type
+   */
+  setAuthType(type: UserTypes): void {
     this.userType = type;
     this.currentEndpoints = this.endpoints[type];
   }
 
+  /**
+   * Send OTP to the provided email address
+   * @param email The email address to send OTP to
+   */
   sendOtp(email: string): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
     
-    // For admin, we use the specific admin OTP endpoint
-    if (this.userType === UserTypes.ROLE_ADMIN) {
-      return this.http.post(ADMIN_SEND_OTP, { email }, { headers });
-    }
+    // Store the email for later use
+    this.setEmail(email);
     
-    // For other user types, use their respective endpoints
-    return this.http.post(this.currentEndpoints.sendOtp, { email }, { headers });
-  }
-
-  verifyOtp(email: string, otp: string): Observable<any> {
-    // Use the specific endpoint for each user type
-    return this.http.post(this.currentEndpoints.signIn, { email, otp }, {
-      observe: 'response'  // Get the full response including status
-    }).pipe(
-      map(response => {
-        // If the response has a body, return it directly
-        if (response.body) {
-          return response.body;
-        }
-        // Otherwise return the response as is
-        return response;
-      }),
+    // Use the specific endpoint for the current user type
+    return this.http.post(this.currentEndpoints.sendOtp, { email }, { headers }).pipe(
       catchError(error => {
-        // If the error has a response body, return it as an observable
-        if (error.error) {
-          return of(error.error);
-        }
-        // Otherwise rethrow the error
-        return throwError(error);
+        console.error('Error sending OTP:', error);
+        return throwError(() => error);
       })
     );
   }
 
-  setEmail(email: string) {
+  /**
+   * Verify OTP and sign in the user
+   * @param email The user's email
+   * @param otp The OTP to verify
+   */
+  verifyOtp(email: string, otp: string): Observable<LoginResponse> {
+    const payload = { email, otp };
+    
+    return this.http.post<LoginResponse>(
+      this.currentEndpoints.signIn, 
+      payload, 
+      { observe: 'response' }
+    ).pipe(
+      tap(response => {
+        if (response.body) {
+          this.saveSessionData(response.body);
+        }
+      }),
+      map(response => response.body as LoginResponse),
+      catchError(error => {
+        console.error('Error verifying OTP:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Set the current email address
+   * @param email The email address to set
+   */
+  setEmail(email: string): void {
     this.emailSubject.next(email);
   }
 
+  /**
+   * Get the current email address as an observable
+   */
   getEmail(): Observable<string> {
     return this.emailSubject.asObservable();
   }
 
-  saveSessionData(data: any) {
-    sessionStorage.setItem('jwt', data.jwt);
-    sessionStorage.setItem('refreshToken', data.refreshToken);
-    sessionStorage.setItem('role', data.role);
-    sessionStorage.setItem('twoStepVerificationEnabled', data.twoStepVerificationEnabled);
-    sessionStorage.setItem('twoStepVerified', data.twoStepVerified);
+  /**
+   * Get the current email address synchronously
+   */
+  getCurrentEmail(): string {
+    return this.emailSubject.value;
+  }
+
+  /**
+   * Save session data to session storage
+   * @param data The session data to save
+   */
+  saveSessionData(data: {
+    jwt: string;
+    refreshToken: string;
+    status: boolean;
+    message: string;
+    role: string;
+    twoStepVerified: boolean;
+    twoStepVerificationEnabled: boolean;
+  }): void {
+    if (data.jwt) {
+      sessionStorage.setItem('jwt', data.jwt);
+    }
+    
+    if (data.refreshToken) {
+      sessionStorage.setItem('refreshToken', data.refreshToken);
+    }
+    
+    if (data.role) {
+      sessionStorage.setItem('role', data.role);
+      this.authService.login(data.role as UserTypes);
+    }
+    
+    sessionStorage.setItem('twoStepVerified', String(data.twoStepVerified));
+    sessionStorage.setItem('twoStepVerificationEnabled', String(data.twoStepVerificationEnabled));
+  }
+
+  /**
+   * Clear all session data
+   */
+  clearSessionData(): void {
+    // Clear all auth-related data from sessionStorage
+    sessionStorage.clear();
+    this.authService.logout();
+    this.emailSubject.next('');
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated(): boolean {
+    return !!sessionStorage.getItem('jwt');
+  }
+
+  /**
+   * Get the current authentication token
+   */
+  getToken(): string | null {
+    return sessionStorage.getItem('jwt');
   }
 }

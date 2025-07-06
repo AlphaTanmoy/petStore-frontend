@@ -41,3 +41,7 @@ export const RAIDER_SEND_OTP = CORE_URL + '/sent/otp';
 // Master Endpoints
 export const MASTER_SIGN_IN = ADMIN_URL + '/signIn';
 export const MASTER_SEND_OTP = ADMIN_URL + '/sent/otp';
+
+// Core Endpoints
+export const NAVBAR_LIST = CORE_URL + '/navbar/get';
+export const NAVBAR_LIST_TO_DISPLAY = CORE_URL + '/navbar/getNavbarListToDisplay';
