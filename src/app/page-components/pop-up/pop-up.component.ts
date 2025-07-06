@@ -88,6 +88,14 @@ export class PopupComponent implements OnInit, OnDestroy {
   }
 
   onClose(): void {
+    // Call the onCancel callback if it exists
+    if (this.popupData.onCancel) {
+      try {
+        this.popupData.onCancel();
+      } catch (error) {
+        console.error('Error in onCancel callback:', error);
+      }
+    }
     this.close();
   }
 

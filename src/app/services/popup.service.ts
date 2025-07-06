@@ -12,6 +12,7 @@ export interface PopupData {
   onConfirm?: () => void;
   confirmButtonText?: string;
   cancelButtonText?: string;
+  showConfirmButton?: boolean;
 }
 
 export type PopupState = {
@@ -67,7 +68,8 @@ export class PopupService {
         onCancel,
         onConfirm,
         cancelButtonText,
-        confirmButtonText
+        confirmButtonText,
+        showConfirmButton: !!onConfirm // Add this line to control confirm button visibility
       }
     });
   }

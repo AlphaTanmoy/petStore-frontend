@@ -74,32 +74,24 @@ export class NavbarService {
   
   private filterNavbarItems(items: NavbarItem[]): NavbarItem[] {
     const isAuthenticated = this.authService.isAuthenticated;
-    console.log('Filtering navbar items. isAuthenticated:', isAuthenticated);
     
     return items.filter(item => {
       const menuName = item.menuName?.toLowerCase() || '';
-      
-      // Debug logging
-      console.log('Processing menu item:', { name: item.menuName, type: menuName, hasSubmenu: !!(item.listOfSubMenu?.length) });
-      
+     
       // Handle login/logout/register/profile visibility based on auth state
       if (menuName === 'login' && isAuthenticated) {
-        console.log('Hiding login button - user is authenticated');
         return false; // Hide login when authenticated
       }
       
       if (menuName === 'register' && isAuthenticated) {
-        console.log('Hiding register button - user is authenticated');
         return false; // Hide register when authenticated
       }
       
       if (menuName === 'logout' && !isAuthenticated) {
-        console.log('Hiding logout button - user is not authenticated');
         return false; // Hide logout when not authenticated
       }
       
       if (menuName === 'profile' && !isAuthenticated) {
-        console.log('Hiding profile button - user is not authenticated');
         return false; // Hide profile when not authenticated
       }
       
@@ -110,12 +102,9 @@ export class NavbarService {
         
         // Only keep the item if it has submenus after filtering or it's a parent item that should be shown
         const shouldKeep = filteredSubmenu.length > 0 || this.shouldKeepParentItem(item);
-        console.log('Parent item check:', { name: item.menuName, shouldKeep, filteredSubmenuLength: filteredSubmenu.length });
         return shouldKeep;
       }
-      
-      // If we get here, show the item
-      console.log('Showing menu item:', item.menuName);
+    
       return true;
     });
   }

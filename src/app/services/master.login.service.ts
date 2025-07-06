@@ -46,9 +46,7 @@ export class MasterLoginService {
     const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
     
     if (token && role && isAuthenticated) {
-      console.log('Restoring session from storage:', { token, role, isAuthenticated });
-      
-      // First set the session in this service
+      // Restore session from storage
       this.setSession({ 
         status: true, 
         message: 'Session restored',
@@ -58,11 +56,6 @@ export class MasterLoginService {
         twoStepVerified: true,
         twoStepVerificationEnabled: true
       });
-      
-      // Then ensure AuthService is properly initialized
-      this.authService.login(role as UserTypes, token);
-    } else {
-      console.log('No valid session found in storage');
     }
   }
 
@@ -82,10 +75,7 @@ export class MasterLoginService {
   // Send OTP to the provided email
   sendOtp(email: string): Observable<any> {
     return this.http.post(this.currentEndpoints.sendOtp, { email }).pipe(
-      catchError(error => {
-        console.error('Error sending OTP:', error);
-        return throwError(() => error);
-      })
+      catchError(error => throwError(() => error))
     );
   }
 
@@ -98,33 +88,29 @@ export class MasterLoginService {
           this.setSession(response);
         }
       }),
-      catchError(error => {
-        console.error('Error verifying OTP:', error);
-        return throwError(() => error);
-      })
+      catchError(error => throwError(() => error))
     );
   }
 
   private setSession(authResult: LoginResponse): void {
     try {
-      console.log('Setting session with:', authResult);
+      // Only set session if we have a valid auth result with JWT and role
+      if (!authResult.jwt || !authResult.role) {
+        throw new Error('Invalid auth result: Missing JWT or role');
+      }
       
       // Store all auth-related values in session storage
-      if (authResult.jwt) {
-        sessionStorage.setItem('jwt', authResult.jwt);
-      }
-      if (authResult.role) {
-        sessionStorage.setItem('role', authResult.role);
-        sessionStorage.setItem('userRole', authResult.role); // Keep both for backward compatibility
-      }
+      sessionStorage.setItem('jwt', authResult.jwt);
+      sessionStorage.setItem('role', authResult.role);
+      sessionStorage.setItem('userRole', authResult.role);
+      
       if (authResult.refreshToken) {
         sessionStorage.setItem('refreshToken', authResult.refreshToken);
       }
       
       // Set authentication state
       sessionStorage.setItem('isAuthenticated', 'true');
-      const timestamp = Date.now().toString();
-      sessionStorage.setItem('authTimestamp', timestamp);
+      sessionStorage.setItem('authTimestamp', Date.now().toString());
       
       // Store 2FA related flags if they exist
       if (authResult.twoStepVerified !== undefined) {
@@ -134,24 +120,11 @@ export class MasterLoginService {
         sessionStorage.setItem('twoStepVerificationEnabled', String(authResult.twoStepVerificationEnabled));
       }
       
-      // Ensure AuthService is in sync
-      if (authResult.role) {
-        this.authService.login(authResult.role as UserTypes, authResult.jwt);
-      }
-      
-      console.log('Session storage updated successfully:', {
-        hasJwt: !!authResult.jwt,
-        role: authResult.role,
-        isAuthenticated: true,
-        twoStepVerified: authResult.twoStepVerified,
-        twoStepVerificationEnabled: authResult.twoStepVerificationEnabled,
-        authServiceState: {
-          isAuthenticated: this.authService.isAuthenticated,
-          role: this.authService.currentUserRole
-        }
-      });
+      // Update AuthService state
+      this.authService.login(authResult.role as UserTypes, authResult.jwt);
     } catch (error) {
-      console.error('Error setting session storage:', error);
+      // Clear any partial session data if there was an error
+      this.authService.logout();
       throw error; // Re-throw to be handled by the caller
     }
   }

@@ -41,18 +41,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     const sessionIsAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
     const hasJwt = !!sessionStorage.getItem('jwt');
     const hasRole = !!sessionStorage.getItem('role');
-    
-    // Log the current state for debugging
-    console.log('Navbar isAuthenticated check:', {
-      authService: this.authService.isAuthenticated,
-      sessionStorage: {
-        isAuthenticated: sessionIsAuthenticated,
-        hasJwt: hasJwt,
-        hasRole: hasRole
-      },
-      calculatedAuth: sessionIsAuthenticated && hasJwt && hasRole
-    });
-    
     // Return true only if all conditions are met
     return sessionIsAuthenticated && hasJwt && hasRole;
   }
@@ -99,7 +87,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   // Implement OnInit
   ngOnInit(): void {
-    console.log('NavbarComponent initialized');
     
     // Initial load of navbar items
     this.loadNavbarItems(true);
@@ -116,7 +103,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     // Subscribe to auth state changes
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(({ isAuthenticated, role }) => {
-        console.log('Auth state changed - isAuthenticated:', isAuthenticated, 'role:', role);
         
         // Clear the navbar cache and reload items when auth state changes
         this.navbarService.clearCache();
@@ -134,7 +120,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.router.events.pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd)
       ).subscribe((event) => {
-        console.log('Navigation end:', event.url);
         this.updateActiveStates();
       })
     );
@@ -167,7 +152,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private loadNavbarItems(forceRefresh: boolean = false): void {
-    console.log('Loading navbar items, forceRefresh:', forceRefresh);
     
     // Clear the cache if force refresh is requested
     if (forceRefresh) {
@@ -177,24 +161,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.navbarService.getFilteredNavbarItems().subscribe({
         next: (items: NavbarItem[]) => {
-          console.log('Navbar items loaded:', items.length, 'items');
-          
-          // Transform the navbar items based on authentication status
           const transformedItems = this.transformNavbarItems(items);
           this.navbarItems = this.addUiStateToItems(transformedItems);
           this.updateActiveStates();
-          
-          console.log('Navbar items after transformation:', this.navbarItems);
-          
-          // Trigger change detection
           this.cdr.detectChanges();
         },
         error: (error: any) => {
           console.error('Error loading navbar items:', error);
-          // No fallback to session storage
         },
         complete: () => {
-          console.log('Navbar items loading complete');
         }
       })
     );
@@ -202,7 +177,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   
   private transformNavbarItems(items: NavbarItem[]): NavbarItem[] {
     const isAuthenticated = this.authService.isAuthenticated;
-    console.log('Transforming navbar items. isAuthenticated:', isAuthenticated);
     
     return items.map(item => {
       if (!item.menuName) {
@@ -214,35 +188,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
       const newItem = { ...item };
       const menuName = item.menuName.toLowerCase();
       
-      console.log('Transforming menu item:', { originalName: item.menuName, menuName, isAuthenticated });
+      
       
       // Handle login/logout transformation
       if (menuName === 'login') {
         if (isAuthenticated) {
-          console.log('Transforming Login to Logout');
           newItem.menuName = 'Logout';
           newItem.menuLink = '#'; // Prevent navigation, we'll handle it in clickHandler
           newItem.clickHandler = (event: Event) => this.onLogout(event);
           // Ensure the item is not filtered out
           newItem.alwaysShow = true;
         } else {
-          console.log('Keeping Login as is');
-          // Ensure clickHandler is not set for login
           newItem.clickHandler = undefined;
         }
       } 
       // Handle logout transformation
       else if (menuName === 'logout') {
         if (!isAuthenticated) {
-          console.log('Transforming Logout to Login');
           newItem.menuName = 'Login';
           newItem.menuLink = '/login';
           newItem.clickHandler = undefined;
         } else {
-          console.log('Keeping Logout as is');
-          // Ensure clickHandler is set for logout
           newItem.clickHandler = (event: Event) => this.onLogout(event);
-          // Ensure the item is not filtered out
           newItem.alwaysShow = true;
         }
       }
@@ -250,14 +217,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
       // Handle register/profile transformation
       if (menuName === 'register') {
         if (isAuthenticated) {
-          console.log('Transforming Register to Profile');
           newItem.menuName = 'Profile';
           newItem.menuLink = '/profile';
-          // Ensure the item is not filtered out
           newItem.alwaysShow = true;
         }
       } else if (menuName === 'profile' && !isAuthenticated) {
-        console.log('Transforming Profile to Register');
         newItem.menuName = 'Register';
         newItem.menuLink = '/register';
       }
@@ -290,28 +254,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
       event.preventDefault();
       event.stopPropagation();
     }
-    
-    console.log('Logout button clicked. Current auth state:', {
-      isAuthenticated: this.authService.isAuthenticated,
-      role: this.authService.currentUserRole
-    });
-    
+
     // Show confirmation popup
     this.popupService.showPopup(
       PopupType.WARNING,
       'Logout',
       'Are you sure you want to logout?',
       () => {
-        // User cancelled
-        console.log('Logout cancelled');
-      },
-      () => {
-        // User confirmed
-        console.log('User confirmed logout');
         this.handleLogout();
       },
-      'Cancel',
-      'Logout'
+      () => {
+        this.handleLogout();
+      },
+      'Cancel', // cancelButtonText
+      'Logout', // confirmButtonText
+      undefined // navigateTo (optional)
     );
   }
 
@@ -320,30 +277,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   private handleLogout(): void {
     try {
-      console.log('handleLogout called. Current auth state before logout:', {
-        isAuthenticated: this.authService.isAuthenticated,
-        role: this.authService.currentUserRole,
-        hasJwt: !!sessionStorage.getItem('jwt')
-      });
-      
-      // Clear auth state
       this.authService.logout();
-      
-      console.log('Auth state after logout:', {
-        isAuthenticated: this.authService.isAuthenticated,
-        role: this.authService.currentUserRole,
-        hasJwt: !!sessionStorage.getItem('jwt')
-      });
-      
-      // Clear navbar cache and reload items
       this.navbarService.clearCache();
-      
-      // Force reload navbar items with a small delay to ensure auth state is fully cleared
       setTimeout(() => {
-        console.log('Reloading navbar items after logout');
         this.loadNavbarItems(true);
         
-        // Show success message with a small delay to ensure UI is updated
         setTimeout(() => {
           this.popupService.showPopup(
             PopupType.SUCCESS,
