@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AdminLoginService } from '../../services/admin.login.service';
+import { MasterLoginService } from '../../services/master.login.service';
 import { UserTypes } from '../../constants/enums/user-types';
 import { Subscription, interval } from 'rxjs';
 import { PopupService } from '../../services/popup.service';
@@ -33,6 +34,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private adminService: AdminLoginService,
+    private masterService: MasterLoginService,
     private router: Router,
     private route: ActivatedRoute,
     private popupService: PopupService
@@ -74,10 +76,9 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
       this.adminService.setAuthType(this.userType);
     });
     
-    // Start resend timer if needed
-    if (this.isResendDisabled) {
-      this.startResendTimer();
-    }
+    // Start resend timer on component init
+    this.isResendDisabled = true;
+    this.startResendTimer();
   }
 
   ngAfterViewInit() {
@@ -156,32 +157,74 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  private getAuthService() {
+    return this.userType === UserTypes.ROLE_MASTER 
+      ? this.masterService 
+      : this.adminService;
+  }
+
+  private getVerifyOtpObservable(service: any, email: string, otp: string) {
+    if (this.userType === UserTypes.ROLE_MASTER) {
+      // MasterLoginService takes only otp
+      return (service as MasterLoginService).verifyOtp(otp);
+    } else {
+      // AdminLoginService takes email and otp
+      return (service as AdminLoginService).verifyOtp(email, otp);
+    }
+  }
+
+  private getSendOtpObservable(service: any, email: string) {
+    // Both services have the same method signature for sendOtp
+    return service.sendOtp(email);
+  }
+
   verifyOtp() {
     const otp = this.otp.join('');
     if (otp.length !== 6) {
       this.popupService.showPopup(
         PopupType.ERROR,
         'Error',
-        'Please enter a valid 6-digit OTP'
+        'Please enter a valid 6-digit OTP',
+        undefined, // onCancel
+        undefined, // onConfirm
+        undefined, // cancelButtonText
+        'OK' // confirmButtonText
       );
       return;
     }
 
     this.loading = true;
+    const authService = this.getAuthService();
+    
+    // Set email in the service if not already set
+    if (!authService.getEmail() && this.email) {
+      authService.setEmail(this.email);
+    }
 
-    this.adminService.verifyOtp(this.email, otp).subscribe({
+    // Get the appropriate verify OTP observable based on service type
+    const verifyObservable = this.getVerifyOtpObservable(authService, this.email, otp);
+    
+    verifyObservable.subscribe({
       next: (response: any) => {
         console.log('Verify OTP Response:', response);
         this.loading = false;
         
         if (response?.status === true) {
-          this.adminService.saveSessionData(response);
+          // No need to call saveSessionData as it's handled in the service
           
           // Get the success message from response or use a default
           const successMessage = response?.message || 'Successfully verified! Redirecting...';
           
           // Show success message
-          this.popupService.showPopup(PopupType.SUCCESS, 'Success', successMessage);
+          this.popupService.showPopup(
+            PopupType.SUCCESS, 
+            'Success', 
+            successMessage,
+            undefined, // onCancel
+            undefined, // onConfirm
+            undefined, // cancelButtonText
+            'OK' // confirmButtonText
+          );
           
           // Navigate after a short delay to show the success message
           setTimeout(() => {
@@ -214,7 +257,15 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           // Handle case where status is false
           const errorMsg = response?.errorMessage || 'Verification failed. Please try again.';
-          this.popupService.showPopup(PopupType.ERROR, 'Error', errorMsg);
+          this.popupService.showPopup(
+            PopupType.ERROR, 
+            'Error', 
+            errorMsg,
+            undefined, // onCancel
+            undefined, // onConfirm
+            undefined, // cancelButtonText
+            'OK' // confirmButtonText
+          );
         }
       },
       error: (errorResponse: any) => {
@@ -223,7 +274,15 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         
         // The error response is the actual error object from the server
         const errorMessage = errorResponse?.errorMessage || 'Verification failed. Please try again.';
-        this.popupService.showPopup(PopupType.ERROR, 'Error', errorMessage);
+        this.popupService.showPopup(
+          PopupType.ERROR, 
+          'Error', 
+          errorMessage,
+          undefined, // onCancel
+          undefined, // onConfirm
+          undefined, // cancelButtonText
+          'OK' // confirmButtonText
+        );
       },
       complete: () => {
         this.loading = false;
@@ -235,16 +294,30 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.isResendDisabled || this.loading) return;
     
     if (!this.email) {
-      this.popupService.showPopup(PopupType.ERROR, 'Error', 'Email address is required');
+      this.popupService.showPopup(
+        PopupType.ERROR, 
+        'Error', 
+        'Email address is required',
+        undefined, // onCancel
+        undefined, // onConfirm
+        undefined, // cancelButtonText
+        'OK' // confirmButtonText
+      );
       return;
     }
     
     this.loading = true;
-    // Ensure auth type is set correctly
-    this.adminService.setAuthType(this.userType);
+    const authService = this.getAuthService();
     
-    // Send OTP with the current email
-    this.adminService.sendOtp(this.email).subscribe({
+    // Set auth type and email in the service if not already set
+    authService.setAuthType(this.userType);
+    if (!authService.getEmail() && this.email) {
+      authService.setEmail(this.email);
+    }
+    
+    // Send OTP with the current email using the appropriate service
+    const sendOtpObservable = this.getSendOtpObservable(authService, this.email);
+    sendOtpObservable.subscribe({
       next: (response: any) => {
         console.log('Resend OTP Response:', response);
         
@@ -252,7 +325,11 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.popupService.showPopup(
             PopupType.SUCCESS,
             'Success',
-            response.message || 'OTP has been resent to your email.'
+            response.message || 'OTP has been resent to your email.',
+            undefined, // onCancel
+            undefined, // onConfirm
+            undefined, // cancelButtonText
+            'OK' // confirmButtonText
           );
           this.isResendDisabled = true;
           this.resendTimer = 60;
@@ -260,14 +337,30 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           // Handle case where status is false
           const errorMsg = response?.errorMessage || response?.message || 'Failed to resend OTP. Please try again.';
-          this.popupService.showPopup(PopupType.ERROR, 'Error', errorMsg);
+          this.popupService.showPopup(
+            PopupType.ERROR, 
+            'Error', 
+            errorMsg,
+            undefined, // onCancel
+            undefined, // onConfirm
+            undefined, // cancelButtonText
+            'OK' // confirmButtonText
+          );
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Resend OTP Error:', error);
         // The error interceptor should have already handled the error format
-        const errorMessage = error?.errorMessage || error?.message || 'Failed to resend OTP. Please try again.';
-        this.popupService.showPopup(PopupType.ERROR, 'Error', errorMessage);
+        const errorMessage = error?.error?.message || error?.message || 'Failed to resend OTP. Please try again.';
+        this.popupService.showPopup(
+          PopupType.ERROR, 
+          'Error', 
+          errorMessage,
+          undefined, // onCancel
+          undefined, // onConfirm
+          undefined, // cancelButtonText
+          'OK' // confirmButtonText
+        );
         this.loading = false;
       },
       complete: () => {

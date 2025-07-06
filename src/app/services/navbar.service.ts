@@ -24,18 +24,13 @@ export class NavbarService {
     return token ? { 'Alpha': `Alpha ${token}` } : {};
   }
 
-  private getCachedNavbarItems(): NavbarItem[] | null {
-    const cached = localStorage.getItem('cachedNavbarItems');
-    return cached ? JSON.parse(cached) : null;
-  }
-
-  private setCachedNavbarItems(items: NavbarItem[]): void {
-    this.cachedNavbarItems = items;
-    localStorage.setItem('cachedNavbarItems', JSON.stringify(items));
-  }
-
   getNavbarItems(): Observable<NavbarItem[]> {
-    // Always fetch fresh data when the page loads
+    // Return cached items if available
+    if (this.cachedNavbarItems) {
+      return of([...this.cachedNavbarItems]);
+    }
+
+    // Otherwise, fetch fresh data
     return this.http.get<NavbarApiResponse>(this.apiUrl, {
       headers: this.getAuthHeader()
     }).pipe(
@@ -43,7 +38,7 @@ export class NavbarService {
         if (response.status && response.data) {
           // Add isExpanded property for UI toggling
           const items = this.addExpandedProperty(response.data);
-          this.setCachedNavbarItems(items);
+          this.cachedNavbarItems = items; // Cache in memory only
           return items;
         }
         return [];
@@ -56,8 +51,7 @@ export class NavbarService {
   }
 
   refreshNavbarItems(): Observable<NavbarItem[]> {
-    this.cachedNavbarItems = null;
-    localStorage.removeItem('cachedNavbarItems');
+    this.cachedNavbarItems = null; // Clear in-memory cache only
     return this.getNavbarItems();
   }
 

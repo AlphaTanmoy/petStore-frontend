@@ -40,12 +40,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private handleWindowFocus = () => {
-    const lastNavbarUpdate = parseInt(sessionStorage.getItem('navbarTimestamp') || '0', 10);
-    const now = Date.now();
-    // Refresh if it's been more than 5 minutes since last update
-    if (now - lastNavbarUpdate > 5 * 60 * 1000) {
-      this.loadNavbarItems(true);
-    }
+    // Always refresh when window regains focus
+    this.loadNavbarItems(true);
   };
 
   // Implement OnInit
@@ -102,35 +98,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private loadNavbarItems(forceRefresh: boolean = false): void {
-    // Add a timestamp to the request to prevent caching
-    const timestamp = forceRefresh ? `?t=${Date.now()}` : '';
-    
     this.subscriptions.add(
       this.navbarService.getFilteredNavbarItems().subscribe({
         next: (items: NavbarItem[]) => {
           this.navbarItems = this.addUiStateToItems(items);
           this.updateActiveStates();
           
-          // Store the current navbar state
-          sessionStorage.setItem('navbarItems', JSON.stringify(items));
-          sessionStorage.setItem('navbarTimestamp', Date.now().toString());
-          
           // Trigger change detection
           this.cdr.detectChanges();
         },
         error: (error: any) => {
           console.error('Error loading navbar items:', error);
-          // Try to load from sessionStorage if available
-          const cachedNavbar = sessionStorage.getItem('navbarItems');
-          if (cachedNavbar) {
-            try {
-              const parsedItems = JSON.parse(cachedNavbar);
-              this.navbarItems = this.addUiStateToItems(parsedItems);
-              this.updateActiveStates();
-            } catch (e) {
-              console.error('Error parsing cached navbar items:', e);
-            }
-          }
+          // No fallback to session storage
         }
       })
     );
@@ -212,13 +191,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
       PopupType.WARNING,
       'Confirm Logout',
       'Are you sure you want to logout?',
-      undefined,
       () => {
+        // Cancel callback - do nothing
+      },
+      () => {
+        // Confirm callback
         this.authService.logout();
         this.isCollapsed = true;
         this.router.navigate(['/home']);
       },
-      true // Show confirm button
+      'Cancel',
+      'Logout'
     );
   }
 }

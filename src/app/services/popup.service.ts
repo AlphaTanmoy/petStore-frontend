@@ -8,8 +8,10 @@ export interface PopupData {
   title: string;
   message: string;
   navigateTo?: string;
+  onCancel?: () => void;
   onConfirm?: () => void;
-  showConfirmButton?: boolean;
+  confirmButtonText?: string;
+  cancelButtonText?: string;
 }
 
 export type PopupState = {
@@ -47,9 +49,11 @@ export class PopupService {
     type: PopupType, 
     title: string, 
     message: string, 
-    navigateTo?: string, 
+    onCancel?: () => void,
     onConfirm?: () => void,
-    showConfirmButton: boolean = false
+    cancelButtonText: string = 'Cancel',
+    confirmButtonText: string = 'OK',
+    navigateTo?: string
   ): void {
     this.popupState.next({
       isVisible: true,
@@ -57,9 +61,11 @@ export class PopupService {
         type, 
         title, 
         message, 
-        navigateTo, 
+        navigateTo,
+        onCancel,
         onConfirm,
-        showConfirmButton
+        cancelButtonText,
+        confirmButtonText
       }
     });
   }
