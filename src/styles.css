@@ -4,14 +4,14 @@
 /* Theme Color Variables */
 :root {
   /* Primary Colors */
-  --primary-color: #4361ee;
-  --primary-hover: #3a56d4;
-  --primary-light: #eef2ff;
+  --primary-color: #00a2ff;
+  --primary-hover: #00c3ff;
+  --primary-light: #75b3d6;
   
   /* Secondary Colors */
-  --secondary-color: #6c757d;
-  --secondary-hover: #5a6268;
-  --secondary-light: #f8f9fa;
+  --secondary-color: #ffae00;
+  --secondary-hover: #ffd900;
+  --secondary-light: #daa739;
   
   /* Success Colors */
   --success-color: #28a745;
