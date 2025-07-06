@@ -68,4 +68,12 @@ export class NavbarService {
     // The API handles filtering based on the user's role (from the token)
     return this.getNavbarItems();
   }
+
+  /**
+   * Clear the cached navbar items
+   * This forces the service to fetch fresh data on the next request
+   */
+  clearCache(): void {
+    this.cachedNavbarItems = null;
+  }
 }

@@ -1,18 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { RouterModule, RouterOutlet } from '@angular/router';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-vertical-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    RouterOutlet, 
+    NavbarComponent
+  ],
   template: `
     <div class="app-container">
-      <aside class="sidebar">
+      <aside class="sidebar" [class.sidebar-open]="isSidebarOpen">
         <div class="logo">PetStore</div>
-        <app-navbar [isHorizontal]="false" [userRole]="currentUserRole"></app-navbar>
+        <app-navbar [isHorizontal]="false" [userRole]="currentUserRole" (navItemClick)="onNavItemClick()"></app-navbar>
       </aside>
+      <div class="backdrop" [class.backdrop-open]="isSidebarOpen" (click)="onBackdropClick()"></div>
       <main class="main-content">
         <router-outlet></router-outlet>
       </main>
@@ -27,6 +33,7 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
     .app-container {
       display: flex;
       min-height: 100vh;
+      position: relative;
     }
     
     .sidebar {
@@ -37,6 +44,12 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
       position: sticky;
       top: 0;
       overflow-y: auto;
+      transform: translateX(-250px);
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .sidebar.sidebar-open {
+      transform: translateX(0);
     }
     
     .logo {
@@ -51,6 +64,23 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
       flex: 1;
       padding: 20px;
       background-color: #f5f7fa;
+    }
+    
+    .backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease-in-out;
+    }
+    
+    .backdrop.backdrop-open {
+      opacity: 1;
+      visibility: visible;
     }
     
     /* Custom scrollbar for sidebar */
@@ -68,7 +98,50 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
     }
   `]
 })
-export class VerticalLayoutComponent {
-  // This should come from your auth service
-  currentUserRole: string = 'admin'; // Example: 'admin', 'user', 'guest', etc.
+export class VerticalLayoutComponent implements OnInit {
+  currentUserRole: string = ''; // Will be set based on auth state
+  isMobileView = false;
+  isSidebarOpen = false;
+  
+  constructor() {
+    // TODO: Get user role from auth service
+    // this.currentUserRole = this.authService.getUserRole();
+    this.currentUserRole = 'admin'; // Temporary for testing
+  }
+
+  ngOnInit(): void {
+    this.checkViewport();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.checkViewport();
+  }
+
+  private checkViewport() {
+    this.isMobileView = window.innerWidth < 992; // Bootstrap's lg breakpoint
+    if (!this.isMobileView) {
+      this.isSidebarOpen = true;
+    } else {
+      this.isSidebarOpen = false;
+    }
+  }
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  // Close sidebar when clicking on backdrop (mobile)
+  onBackdropClick() {
+    if (this.isMobileView) {
+      this.isSidebarOpen = false;
+    }
+  }
+
+  // Close sidebar when clicking on a nav item (mobile)
+  onNavItemClick() {
+    if (this.isMobileView) {
+      this.isSidebarOpen = false;
+    }
+  }
 }

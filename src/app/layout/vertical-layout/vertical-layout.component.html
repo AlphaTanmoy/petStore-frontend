@@ -1,1 +1,55 @@
-<p>vertical-layout works!</p>
+<div class="app-container d-flex min-vh-100">
+  <!-- Sidebar -->
+  <aside class="sidebar d-flex flex-column flex-shrink-0 bg-dark text-white shadow">
+    <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary">
+      <h1 class="h5 mb-0 text-white">PetStore</h1>
+      <button class="btn btn-link d-lg-none text-white p-0" (click)="toggleSidebar()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    
+    <div class="flex-grow-1 overflow-auto py-3">
+      <app-navbar [isHorizontal]="false" [userRole]="currentUserRole"></app-navbar>
+    </div>
+    
+    <!-- User Info -->
+    <div class="p-3 border-top border-secondary">
+      <div class="d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+          <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <i class="bi bi-person-fill"></i>
+          </div>
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-medium">{{ currentUserRole | titlecase }}</div>
+          <small class="text-muted">Admin User</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content d-flex flex-column flex-grow-1">
+    <!-- Top Navigation (for mobile) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary d-lg-none">
+      <div class="container-fluid">
+        <button class="btn btn-link text-white" (click)="toggleSidebar()">
+          <i class="bi bi-list"></i>
+        </button>
+        <span class="navbar-brand mx-auto">PetStore</span>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="flex-grow-1 p-3 p-lg-4">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top py-3 mt-auto">
+      <div class="container-fluid text-center text-muted">
+        <small> 2025 PetStore. All rights reserved.</small>
+      </div>
+    </footer>
+  </div>
+</div>
