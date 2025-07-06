@@ -7,6 +7,7 @@ import { UserTypes } from '../../constants/enums/user-types';
 import { Subscription, interval } from 'rxjs';
 import { PopupService } from '../../services/popup.service';
 import { PopupComponent } from '../pop-up/pop-up.component';
+import { PopupType } from '../../constants/enums/popup-types';
 
 @Component({
   selector: 'app-otp-component',
@@ -159,7 +160,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     const otp = this.otp.join('');
     if (otp.length !== 6) {
       this.popupService.showPopup(
-        'error',
+        PopupType.ERROR,
         'Error',
         'Please enter a valid 6-digit OTP'
       );
@@ -180,7 +181,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
           const successMessage = response?.message || 'Successfully verified! Redirecting...';
           
           // Show success message
-          this.popupService.showPopup('success', 'Success', successMessage);
+          this.popupService.showPopup(PopupType.SUCCESS, 'Success', successMessage);
           
           // Navigate after a short delay to show the success message
           setTimeout(() => {
@@ -213,7 +214,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           // Handle case where status is false
           const errorMsg = response?.errorMessage || 'Verification failed. Please try again.';
-          this.popupService.showPopup('error', 'Error', errorMsg);
+          this.popupService.showPopup(PopupType.ERROR, 'Error', errorMsg);
         }
       },
       error: (errorResponse: any) => {
@@ -222,7 +223,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         
         // The error response is the actual error object from the server
         const errorMessage = errorResponse?.errorMessage || 'Verification failed. Please try again.';
-        this.popupService.showPopup('error', 'Error', errorMessage);
+        this.popupService.showPopup(PopupType.ERROR, 'Error', errorMessage);
       },
       complete: () => {
         this.loading = false;
@@ -234,7 +235,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.isResendDisabled || this.loading) return;
     
     if (!this.email) {
-      this.popupService.showPopup('error', 'Error', 'Email address is required');
+      this.popupService.showPopup(PopupType.ERROR, 'Error', 'Email address is required');
       return;
     }
     
@@ -249,7 +250,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         
         if (response?.status) {
           this.popupService.showPopup(
-            'success',
+            PopupType.SUCCESS,
             'Success',
             response.message || 'OTP has been resent to your email.'
           );
@@ -259,14 +260,14 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           // Handle case where status is false
           const errorMsg = response?.errorMessage || response?.message || 'Failed to resend OTP. Please try again.';
-          this.popupService.showPopup('error', 'Error', errorMsg);
+          this.popupService.showPopup(PopupType.ERROR, 'Error', errorMsg);
         }
       },
       error: (error) => {
         console.error('Resend OTP Error:', error);
         // The error interceptor should have already handled the error format
         const errorMessage = error?.errorMessage || error?.message || 'Failed to resend OTP. Please try again.';
-        this.popupService.showPopup('error', 'Error', errorMessage);
+        this.popupService.showPopup(PopupType.ERROR, 'Error', errorMessage);
         this.loading = false;
       },
       complete: () => {

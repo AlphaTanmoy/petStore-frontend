@@ -23,11 +23,13 @@
         <p class="mb-0">{{ popupData.message }}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" 
-                class="btn btn-sm" 
-                [ngClass]="getButtonClass()"
-                (click)="close()">
-          Close
+        <ng-container *ngIf="popupData.showConfirmButton">
+          <button type="button" class="btn" [ngClass]="getButtonClass('confirm')" (click)="onConfirm()">
+            Confirm
+          </button>
+        </ng-container>
+        <button type="button" class="btn" [ngClass]="getButtonClass('close')" (click)="onClose()">
+          {{ popupData.showConfirmButton ? 'Cancel' : 'Close' }}
         </button>
       </div>
     </div>

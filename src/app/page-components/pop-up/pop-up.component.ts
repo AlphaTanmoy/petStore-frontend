@@ -1,16 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { PopupService, PopupState } from '../../services/popup.service';
-
-export type PopupType = 'success' | 'error' | 'warning' | 'info';
-
-export interface PopupData {
-  type: PopupType;
-  title: string;
-  message: string;
-  redirectTo?: string;
-}
+import { PopupService, PopupState, PopupData } from '../../services/popup.service';
+import { PopupType } from '../../constants/enums/popup-types';
 
 @Component({
   selector: 'app-popup',
@@ -21,8 +13,8 @@ export interface PopupData {
 })
 export class PopupComponent implements OnInit, OnDestroy {
   isVisible = false;
-  popupData: PopupData = {
-    type: 'info',
+  popupData: PopupData & { onConfirm?: () => void; showConfirmButton?: boolean } = {
+    type: PopupType.INFO,
     title: '',
     message: ''
   };
@@ -49,10 +41,10 @@ export class PopupComponent implements OnInit, OnDestroy {
 
   getIconClass(): string {
     switch (this.popupData.type) {
-      case 'success': return 'bi-check-circle-fill';
-      case 'error': return 'bi-x-circle-fill';
-      case 'warning': return 'bi-exclamation-triangle-fill';
-      case 'info':
+      case PopupType.SUCCESS: return 'bi-check-circle-fill';
+      case PopupType.ERROR: return 'bi-x-circle-fill';
+      case PopupType.WARNING: return 'bi-exclamation-triangle-fill';
+      case PopupType.INFO:
       default:
         return 'bi-info-circle-fill';
     }
@@ -60,10 +52,10 @@ export class PopupComponent implements OnInit, OnDestroy {
 
   getBorderClass(): string {
     switch (this.popupData.type) {
-      case 'success': return 'border-top border-success border-3';
-      case 'error': return 'border-top border-danger border-3';
-      case 'warning': return 'border-top border-warning border-3';
-      case 'info':
+      case PopupType.SUCCESS: return 'border-top border-success border-3';
+      case PopupType.ERROR: return 'border-top border-danger border-3';
+      case PopupType.WARNING: return 'border-top border-warning border-3';
+      case PopupType.INFO:
       default:
         return 'border-top border-info border-3';
     }
@@ -71,34 +63,49 @@ export class PopupComponent implements OnInit, OnDestroy {
 
   getTextColorClass(): string {
     switch (this.popupData.type) {
-      case 'success': return 'text-success';
-      case 'error': return 'text-danger';
-      case 'warning': return 'text-warning';
-      case 'info':
+      case PopupType.SUCCESS: return 'text-success';
+      case PopupType.ERROR: return 'text-danger';
+      case PopupType.WARNING: return 'text-warning';
+      case PopupType.INFO:
       default:
         return 'text-info';
     }
   }
 
-  getButtonClass(): string {
+  getButtonClass(type: 'confirm' | 'close'): string {
+    if (type === 'confirm') {
+      return 'btn-primary text-white me-2';
+    }
+    
     switch (this.popupData.type) {
-      case 'success': return 'btn-success text-white';
-      case 'error': return 'btn-danger text-white';
-      case 'warning': return 'btn-warning';
-      case 'info':
+      case PopupType.SUCCESS: return 'btn-success text-white';
+      case PopupType.ERROR: return 'btn-danger text-white';
+      case PopupType.WARNING: return 'btn-warning';
+      case PopupType.INFO:
       default:
         return 'btn-info text-white';
     }
   }
 
+  onClose(): void {
+    this.close();
+  }
+
+  onConfirm(): void {
+    if (this.popupData.onConfirm) {
+      this.popupData.onConfirm();
+    }
+    this.close();
+  }
+
   close(): void {
-    const redirectTo = this.popupData.redirectTo;
+    const navigateTo = this.popupData.navigateTo;
     this.popupService.hidePopup();
     
-    // Use setTimeout to ensure the popup is hidden before navigation
-    if (redirectTo) {
+    if (navigateTo) {
+      // Use setTimeout to ensure the popup is hidden before navigation
       setTimeout(() => {
-        this.router.navigateByUrl(redirectTo).catch(err => {
+        this.router.navigateByUrl(navigateTo).catch(err => {
           console.error('Navigation error:', err);
         });
       }, 100); // Small delay to allow the popup to close smoothly

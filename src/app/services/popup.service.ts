@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
-
-export type PopupType = 'success' | 'error' | 'info' | 'warning';
+import { PopupType } from '../constants/enums/popup-types';
 
 export interface PopupData {
   type: PopupType;
   title: string;
   message: string;
-  redirectTo?: string;
+  navigateTo?: string;
+  onConfirm?: () => void;
+  showConfirmButton?: boolean;
 }
 
-export interface PopupState {
+export type PopupState = {
   isVisible: boolean;
   data: PopupData;
 }
@@ -23,7 +24,7 @@ export class PopupService {
   private popupState = new BehaviorSubject<PopupState>({
     isVisible: false,
     data: {
-      type: 'info',
+      type: PopupType.INFO,
       title: '',
       message: ''
     }
@@ -38,16 +39,27 @@ export class PopupService {
    * @param type The type of popup (error, success, info, warning)
    * @param title The title of the popup
    * @param message The message to display (must be a string)
-   * @param redirectTo Optional URL to redirect to after popup is closed
+   * @param navigateTo Optional URL to redirect to after popup is closed
+   * @param onConfirm Optional callback to execute when the confirm button is clicked
+   * @param showConfirmButton Optional flag to show the confirm button (defaults to false)
    */
-  showPopup(type: PopupType, title: string, message: string, redirectTo?: string): void {
+  showPopup(
+    type: PopupType, 
+    title: string, 
+    message: string, 
+    navigateTo?: string, 
+    onConfirm?: () => void,
+    showConfirmButton: boolean = false
+  ): void {
     this.popupState.next({
       isVisible: true,
-      data: {
-        type,
-        title,
-        message,
-        redirectTo
+      data: { 
+        type, 
+        title, 
+        message, 
+        navigateTo, 
+        onConfirm,
+        showConfirmButton
       }
     });
   }

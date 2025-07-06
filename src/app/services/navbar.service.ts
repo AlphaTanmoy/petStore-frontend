@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { NavbarItem } from '../interfaces/navbarItem.interface';
-
+import { NAVBAR_LIST_TO_DISPLAY } from '../constants/api-endpoints';
 export interface NavbarApiResponse {
   status: boolean;
   message: string;
@@ -14,7 +14,7 @@ export interface NavbarApiResponse {
   providedIn: 'root'
 })
 export class NavbarService {
-  private apiUrl = 'http://localhost:8083/navbar/getNavbarListToDisplay';
+  private apiUrl = NAVBAR_LIST_TO_DISPLAY;
   private cachedNavbarItems: NavbarItem[] | null = null;
 
   constructor(private http: HttpClient) {}

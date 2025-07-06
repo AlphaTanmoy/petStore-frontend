@@ -9,9 +9,11 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<{
     role: UserTypes | null;
     isAuthenticated: boolean;
+    timestamp?: number;
   }>({
     role: null,
-    isAuthenticated: false
+    isAuthenticated: false,
+    timestamp: Date.now()
   });
 
   constructor() {
@@ -40,30 +42,47 @@ export class AuthService {
   }
 
   login(role: UserTypes): void {
-    this.currentUserSubject.next({ role, isAuthenticated: true });
+    this.currentUserSubject.next({ 
+      role, 
+      isAuthenticated: true,
+      timestamp: Date.now()
+    });
     this.saveAuthState(role, true);
   }
 
   logout(): void {
-    this.currentUserSubject.next({ role: null, isAuthenticated: false });
+    // Clear all auth-related data from storage
     this.clearAuthState();
+    
+    // Update the subject with a new timestamp to force refresh
+    this.currentUserSubject.next({ 
+      role: null, 
+      isAuthenticated: false,
+      timestamp: Date.now()
+    });
   }
 
-  private saveAuthState(role: UserTypes | null, isAuthenticated: boolean): void {
-    if (isAuthenticated && role) {
-      sessionStorage.setItem('jwt', sessionStorage.getItem('jwt') || '');
-      sessionStorage.setItem('role', role);
-    } else {
-      this.clearAuthState();
-    }
+  private saveAuthState(role: UserTypes, isAuthenticated: boolean): void {
+    sessionStorage.setItem('isAuthenticated', isAuthenticated.toString());
+    sessionStorage.setItem('role', role);
+    sessionStorage.setItem('authTimestamp', Date.now().toString());
   }
 
   private clearAuthState(): void {
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('refreshToken');
-    sessionStorage.removeItem('role');
-    sessionStorage.removeItem('twoStepVerified');
-    sessionStorage.removeItem('twoStepVerificationEnabled');
+    // Clear all session storage
+    sessionStorage.clear();
+    
+    // Clear any potential localStorage items
+    localStorage.clear();
+    
+    // Clear any service worker caches if needed
+    if ('caches' in window) {
+      caches.keys().then(cacheNames => {
+        cacheNames.forEach(cacheName => {
+          caches.delete(cacheName);
+        });
+      });
+    }
   }
 
   // Convert UserTypes to the format expected by NavbarService

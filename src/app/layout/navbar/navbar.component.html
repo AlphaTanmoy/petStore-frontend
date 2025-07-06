@@ -98,10 +98,10 @@
       </ul>
       
       <div class="d-flex">
-        @if (authService.isAuthenticated) {
+        @if (isAuthenticated) {
           <div class="d-flex align-items-center">
             <span class="text-light me-3">
-              Welcome, {{ (authService.currentUserRole || '').toLowerCase() | titlecase }}
+              Welcome, {{ (currentUserRole || '').toLowerCase() | titlecase }}
             </span>
             <button class="btn btn-outline-light" (click)="logout()">
               Logout

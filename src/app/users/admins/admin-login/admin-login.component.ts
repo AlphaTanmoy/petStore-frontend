@@ -6,6 +6,7 @@ import { AdminLoginService } from '../../../services/admin.login.service';
 import { UserTypes } from '../../../constants/enums/user-types';
 import { PopupComponent } from '../../../page-components/pop-up/pop-up.component';
 import { PopupService } from '../../../services/popup.service';
+import { PopupType } from '../../../constants/enums/popup-types';
 
 @Component({
   selector: 'app-admin-login',
@@ -54,7 +55,7 @@ export class AdminLoginComponent implements OnInit {
             this.adminService.setEmail(email);
             // Show success popup first
             this.popupService.showPopup(
-              'success',
+              PopupType.SUCCESS,
               'Success',
               response.message || 'OTP has been sent to your email.',
               // Navigate after popup is shown with email as query parameter
@@ -63,13 +64,13 @@ export class AdminLoginComponent implements OnInit {
           } else {
             // Handle case where status is false but no error
             const errorMsg = response?.errorMessage || response?.message || 'Failed to send OTP. Please try again.';
-            this.popupService.showPopup('error', 'Error', errorMsg);
+            this.popupService.showPopup(PopupType.ERROR, 'Error', errorMsg);
           }
         },
         error: (error) => {
           this.loading = false;
           this.popupService.showPopup(
-            'error',
+            PopupType.ERROR,
             'Error',
             error.error?.message || 'Failed to send OTP. Please try again.'
           );

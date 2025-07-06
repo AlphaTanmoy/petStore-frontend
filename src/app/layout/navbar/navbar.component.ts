@@ -1,60 +1,137 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { NavbarService } from '../../services/navabr.service';
-import { NavbarItem } from '../../interfaces/navbarItem.interface';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { NavbarService } from '../../services/navbar.service';
 import { AuthService } from '../../services/auth.service';
+import { NavbarItem } from '../../interfaces/navbarItem.interface';
 import { Subscription, filter } from 'rxjs';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap';
+import { PopupService } from '../../services/popup.service';
+import { PopupType } from '../../constants/enums/popup-types';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, NgbCollapse],
+  imports: [CommonModule, RouterModule, NgbCollapse],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  isCollapsed = true;
   navbarItems: NavbarItem[] = [];
   private subscriptions = new Subscription();
-  isCollapsed = true;
   svgCache: {[key: string]: SafeUrl} = {};
   
-  constructor(
-    private navbarService: NavbarService,
-    public authService: AuthService,
-    private router: Router,
-    private sanitizer: DomSanitizer
-  ) {
-    // Subscribe to route changes to update active states
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.updateActiveStates();
-    });
+  private navbarService = inject(NavbarService);
+  private popupService = inject(PopupService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
+  private cdr = inject(ChangeDetectorRef);
+
+  // Public getters for template access
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated;
   }
 
+  get currentUserRole(): string | null {
+    return this.authService.currentUserRole;
+  }
+
+  private handleWindowFocus = () => {
+    const lastNavbarUpdate = parseInt(sessionStorage.getItem('navbarTimestamp') || '0', 10);
+    const now = Date.now();
+    // Refresh if it's been more than 5 minutes since last update
+    if (now - lastNavbarUpdate > 5 * 60 * 1000) {
+      this.loadNavbarItems(true);
+    }
+  };
+
+  // Implement OnInit
   ngOnInit(): void {
-    this.loadNavbarItems();
+    // Load navbar items with cache busting
+    this.loadNavbarItems(true);
     
-    // Subscribe to authentication state changes
+    // Subscribe to popup state changes
     this.subscriptions.add(
-      this.authService.currentUser$.subscribe(() => {
-        this.loadNavbarItems();
+      this.popupService.popupState$.subscribe(state => {
+        if (state.isVisible) {
+          this.isCollapsed = true;
+        }
       })
     );
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
-
-  private loadNavbarItems(): void {
+    
+    // Subscribe to auth state changes
     this.subscriptions.add(
-      this.navbarService.getNavbarItems().subscribe(items => {
-        this.navbarItems = items;
+      this.authService.currentUser$.subscribe(() => {
+        // Force refresh navbar items when auth state changes
+        this.loadNavbarItems(true);
+      })
+    );
+    
+    // Subscribe to route changes to update active states
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe(() => {
         this.updateActiveStates();
+      })
+    );
+    
+    // Add window focus event to refresh on tab focus
+    window.addEventListener('focus', this.handleWindowFocus);
+  }
+
+  // Implement OnDestroy
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    this.subscriptions.unsubscribe();
+    
+    // Remove event listener
+    window.removeEventListener('focus', this.handleWindowFocus);
+  }
+
+  private addUiStateToItems(items: NavbarItem[]): NavbarItem[] {
+    return items.map(item => ({
+      ...item,
+      isExpanded: false,
+      isActive: false,
+      listOfSubMenu: item.listOfSubMenu ? this.addUiStateToItems(item.listOfSubMenu) : undefined
+    }));
+  }
+
+  private loadNavbarItems(forceRefresh: boolean = false): void {
+    // Add a timestamp to the request to prevent caching
+    const timestamp = forceRefresh ? `?t=${Date.now()}` : '';
+    
+    this.subscriptions.add(
+      this.navbarService.getFilteredNavbarItems().subscribe({
+        next: (items: NavbarItem[]) => {
+          this.navbarItems = this.addUiStateToItems(items);
+          this.updateActiveStates();
+          
+          // Store the current navbar state
+          sessionStorage.setItem('navbarItems', JSON.stringify(items));
+          sessionStorage.setItem('navbarTimestamp', Date.now().toString());
+          
+          // Trigger change detection
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error loading navbar items:', error);
+          // Try to load from sessionStorage if available
+          const cachedNavbar = sessionStorage.getItem('navbarItems');
+          if (cachedNavbar) {
+            try {
+              const parsedItems = JSON.parse(cachedNavbar);
+              this.navbarItems = this.addUiStateToItems(parsedItems);
+              this.updateActiveStates();
+            } catch (e) {
+              console.error('Error parsing cached navbar items:', e);
+            }
+          }
+        }
       })
     );
   }
@@ -131,8 +208,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.isCollapsed = true; // Close the mobile menu after logout
-    this.router.navigate(['/login']);
+    this.popupService.showPopup(
+      PopupType.WARNING,
+      'Confirm Logout',
+      'Are you sure you want to logout?',
+      undefined,
+      () => {
+        this.authService.logout();
+        this.isCollapsed = true;
+        this.router.navigate(['/home']);
+      },
+      true // Show confirm button
+    );
   }
 }
