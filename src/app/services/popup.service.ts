@@ -41,9 +41,11 @@ export class PopupService {
    * @param type The type of popup (error, success, info, warning)
    * @param title The title of the popup
    * @param message The message to display (must be a string)
-   * @param navigateTo Optional URL to redirect to after popup is closed
+   * @param onCancel Optional callback to execute when the cancel button is clicked
    * @param onConfirm Optional callback to execute when the confirm button is clicked
-   * @param showConfirmButton Optional flag to show the confirm button (defaults to false)
+   * @param cancelButtonText Optional text for the cancel button (defaults to 'Cancel')
+   * @param confirmButtonText Optional text for the confirm button (defaults to 'OK')
+   * @param navigateTo Optional URL to redirect to after popup is closed
    */
   showPopup(
     type: PopupType, 

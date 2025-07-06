@@ -201,6 +201,8 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
       authService.setEmail(this.email);
     }
 
+    console.log('Verifying OTP:', { email: this.email, userType: this.userType });
+    
     // Get the appropriate verify OTP observable based on service type
     const verifyObservable = this.getVerifyOtpObservable(authService, this.email, otp);
     
@@ -210,7 +212,13 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loading = false;
         
         if (response?.status === true) {
-          // No need to call saveSessionData as it's handled in the service
+          // Log the current session storage for debugging
+          console.log('Session storage after successful verification:', {
+            jwt: sessionStorage.getItem('jwt'),
+            role: sessionStorage.getItem('role'),
+            isAuthenticated: sessionStorage.getItem('isAuthenticated'),
+            userRole: sessionStorage.getItem('userRole')
+          });
           
           // Get the success message from response or use a default
           const successMessage = response?.message || 'Successfully verified! Redirecting...';
@@ -228,31 +236,28 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
           
           // Navigate after a short delay to show the success message
           setTimeout(() => {
-            switch (this.userType) {
-              case UserTypes.ROLE_ADMIN:
-                this.router.navigate(['/admin/dashboard']);
-                break;
-              case UserTypes.ROLE_CUSTOMER:
-                this.router.navigate(['/user/dashboard']);
-                break;
-              case UserTypes.ROLE_SELLER:
-                this.router.navigate(['/seller/dashboard']);
-                break;
-              case UserTypes.ROLE_DOCTOR:
-                this.router.navigate(['/doctor/dashboard']);
-                break;
-              case UserTypes.ROLE_CUSTOMER_CARE:
-                this.router.navigate(['/customer-care/dashboard']);
-                break;
-              case UserTypes.ROLE_RAIDER:
-                this.router.navigate(['/raider/dashboard']);
-                break;
-              case UserTypes.ROLE_MASTER:
-                this.router.navigate(['/master/dashboard']);
-                break;
-              default:
-                this.router.navigate(['/']);
-            }
+            // Force a reload of the auth state in the navbar
+            window.dispatchEvent(new Event('storage'));
+            
+            // Navigate based on user type
+            const routeMap: { [key: string]: string } = {
+              [UserTypes.ROLE_ADMIN]: '/admin/dashboard',
+              [UserTypes.ROLE_CUSTOMER]: '/user/dashboard',
+              [UserTypes.ROLE_SELLER]: '/seller/dashboard',
+              [UserTypes.ROLE_DOCTOR]: '/doctor/dashboard',
+              [UserTypes.ROLE_CUSTOMER_CARE]: '/customer-care/dashboard',
+              [UserTypes.ROLE_RAIDER]: '/raider/dashboard',
+              [UserTypes.ROLE_MASTER]: '/master/dashboard'
+            };
+            
+            const route = routeMap[this.userType] || '/';
+            console.log('Navigating to:', route);
+            this.router.navigate([route]).then(success => {
+              if (!success) {
+                console.error('Navigation failed, reloading page...');
+                window.location.reload();
+              }
+            });
           }, 1500); // 1.5 second delay before navigation
         } else {
           // Handle case where status is false

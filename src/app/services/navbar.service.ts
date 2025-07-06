@@ -74,35 +74,60 @@ export class NavbarService {
   
   private filterNavbarItems(items: NavbarItem[]): NavbarItem[] {
     const isAuthenticated = this.authService.isAuthenticated;
+    console.log('Filtering navbar items. isAuthenticated:', isAuthenticated);
     
     return items.filter(item => {
-      // Always show items that don't have an auth requirement
-      if (item.menuName.toLowerCase() === 'login' && isAuthenticated) {
+      const menuName = item.menuName?.toLowerCase() || '';
+      
+      // Debug logging
+      console.log('Processing menu item:', { name: item.menuName, type: menuName, hasSubmenu: !!(item.listOfSubMenu?.length) });
+      
+      // Handle login/logout/register/profile visibility based on auth state
+      if (menuName === 'login' && isAuthenticated) {
+        console.log('Hiding login button - user is authenticated');
         return false; // Hide login when authenticated
       }
       
-      if (item.menuName.toLowerCase() === 'register' && isAuthenticated) {
+      if (menuName === 'register' && isAuthenticated) {
+        console.log('Hiding register button - user is authenticated');
         return false; // Hide register when authenticated
       }
       
-      if (item.menuName.toLowerCase() === 'logout' && !isAuthenticated) {
+      if (menuName === 'logout' && !isAuthenticated) {
+        console.log('Hiding logout button - user is not authenticated');
         return false; // Hide logout when not authenticated
       }
       
-      if (item.menuName.toLowerCase() === 'profile' && !isAuthenticated) {
+      if (menuName === 'profile' && !isAuthenticated) {
+        console.log('Hiding profile button - user is not authenticated');
         return false; // Hide profile when not authenticated
       }
       
       // Recursively filter submenus
       if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
-        item.listOfSubMenu = this.filterNavbarItems(item.listOfSubMenu);
+        const filteredSubmenu = this.filterNavbarItems(item.listOfSubMenu);
+        item.listOfSubMenu = filteredSubmenu;
         
-        // Only keep the item if it has submenus after filtering
-        return item.listOfSubMenu.length > 0;
+        // Only keep the item if it has submenus after filtering or it's a parent item that should be shown
+        const shouldKeep = filteredSubmenu.length > 0 || this.shouldKeepParentItem(item);
+        console.log('Parent item check:', { name: item.menuName, shouldKeep, filteredSubmenuLength: filteredSubmenu.length });
+        return shouldKeep;
       }
       
+      // If we get here, show the item
+      console.log('Showing menu item:', item.menuName);
       return true;
     });
+  }
+
+  /**
+   * Determines if a parent menu item should be kept even if it has no visible children
+   * This is useful for top-level menu items that should always be shown
+   */
+  private shouldKeepParentItem(item: NavbarItem): boolean {
+    // Add any conditions for parent items that should always be shown
+    // For example, if the item has a specific class or property
+    return !!item.alwaysShow;
   }
 
   /**

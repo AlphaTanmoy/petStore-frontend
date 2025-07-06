@@ -133,6 +133,54 @@ export class AdminLoginService {
    * Save session data to session storage
    * @param data The session data to save
    */
+  /**
+   * Handle successful login
+   * @param token The JWT token
+   * @param role The user role
+   */
+  private handleLoginSuccess(token: string, role: UserTypes): void {
+    console.log('Handling login success with token and role:', { token, role });
+    
+    // Store the token in session storage
+    sessionStorage.setItem('jwt', token);
+    
+    // Set the authentication state
+    this.authService.login(role, token);
+    
+    // Verify the authentication state was set
+    console.log('Auth state after login:', {
+      isAuthenticated: this.authService.isAuthenticated,
+      role: this.authService.currentUserRole
+    });
+    
+    // Redirect based on role
+    this.redirectAfterLogin(role);
+  }
+
+  /**
+   * Redirect user after successful login based on their role
+   * @param role The user role
+   */
+  private redirectAfterLogin(role: UserTypes): void {
+    let redirectUrl = '/';
+    
+    switch (role) {
+      case UserTypes.ROLE_ADMIN:
+        redirectUrl = '/admin/dashboard';
+        break;
+      case UserTypes.ROLE_MASTER:
+        redirectUrl = '/master/dashboard';
+        break;
+      case UserTypes.ROLE_CUSTOMER:
+        redirectUrl = '/user/dashboard';
+        break;
+      // Add other roles as needed
+    }
+    
+    console.log('Redirecting to:', redirectUrl);
+    window.location.href = redirectUrl;
+  }
+
   saveSessionData(data: {
     jwt: string;
     refreshToken: string;
@@ -151,12 +199,44 @@ export class AdminLoginService {
     }
     
     if (data.role) {
-      sessionStorage.setItem('role', data.role);
-      this.authService.login(data.role as UserTypes);
+      this.handleLoginSuccess(data.jwt, data.role as UserTypes);
+    } else {
+      // If no role is provided, try to get it from the token
+      const token = data.jwt || sessionStorage.getItem('jwt');
+      if (token) {
+        const tokenData = this.parseJwt(token);
+        if (tokenData && tokenData.role) {
+          this.handleLoginSuccess(token, tokenData.role as UserTypes);
+        }
+      }
     }
     
     sessionStorage.setItem('twoStepVerified', String(data.twoStepVerified));
     sessionStorage.setItem('twoStepVerificationEnabled', String(data.twoStepVerificationEnabled));
+    
+    console.log('Session data saved:', {
+      role: data.role,
+      hasJwt: !!data.jwt,
+      hasRefreshToken: !!data.refreshToken
+    });
+  }
+  
+  /**
+   * Parse JWT token to extract payload
+   * @param token The JWT token
+   */
+  private parseJwt(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error('Error parsing JWT token:', e);
+      return null;
+    }
   }
 
   /**

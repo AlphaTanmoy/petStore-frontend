@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { AuthService } from './auth.service';
 import { LoginResponse } from '../interfaces/loginresponse.interface';
 import { 
   AUTH_SEND_OTP,
@@ -34,13 +35,20 @@ export class MasterLoginService {
 
   private currentEndpoints = this.endpoints[this.userType];
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
     // Initialize from session storage if available
     const token = sessionStorage.getItem('jwt');
-    const role = sessionStorage.getItem('userRole');
+    const role = sessionStorage.getItem('role');
     const refreshToken = sessionStorage.getItem('refreshToken') || '';
+    const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
     
-    if (token && role) {
+    if (token && role && isAuthenticated) {
+      console.log('Restoring session from storage:', { token, role, isAuthenticated });
+      
+      // First set the session in this service
       this.setSession({ 
         status: true, 
         message: 'Session restored',
@@ -50,6 +58,11 @@ export class MasterLoginService {
         twoStepVerified: true,
         twoStepVerificationEnabled: true
       });
+      
+      // Then ensure AuthService is properly initialized
+      this.authService.login(role as UserTypes, token);
+    } else {
+      console.log('No valid session found in storage');
     }
   }
 
@@ -93,18 +106,59 @@ export class MasterLoginService {
   }
 
   private setSession(authResult: LoginResponse): void {
-    if (authResult.jwt) {
-      sessionStorage.setItem('jwt', authResult.jwt);
-    }
-    if (authResult.role) {
-      sessionStorage.setItem('userRole', authResult.role);
-    }
-    if (authResult.refreshToken) {
-      sessionStorage.setItem('refreshToken', authResult.refreshToken);
+    try {
+      console.log('Setting session with:', authResult);
+      
+      // Store all auth-related values in session storage
+      if (authResult.jwt) {
+        sessionStorage.setItem('jwt', authResult.jwt);
+      }
+      if (authResult.role) {
+        sessionStorage.setItem('role', authResult.role);
+        sessionStorage.setItem('userRole', authResult.role); // Keep both for backward compatibility
+      }
+      if (authResult.refreshToken) {
+        sessionStorage.setItem('refreshToken', authResult.refreshToken);
+      }
+      
+      // Set authentication state
+      sessionStorage.setItem('isAuthenticated', 'true');
+      const timestamp = Date.now().toString();
+      sessionStorage.setItem('authTimestamp', timestamp);
+      
+      // Store 2FA related flags if they exist
+      if (authResult.twoStepVerified !== undefined) {
+        sessionStorage.setItem('twoStepVerified', String(authResult.twoStepVerified));
+      }
+      if (authResult.twoStepVerificationEnabled !== undefined) {
+        sessionStorage.setItem('twoStepVerificationEnabled', String(authResult.twoStepVerificationEnabled));
+      }
+      
+      // Ensure AuthService is in sync
+      if (authResult.role) {
+        this.authService.login(authResult.role as UserTypes, authResult.jwt);
+      }
+      
+      console.log('Session storage updated successfully:', {
+        hasJwt: !!authResult.jwt,
+        role: authResult.role,
+        isAuthenticated: true,
+        twoStepVerified: authResult.twoStepVerified,
+        twoStepVerificationEnabled: authResult.twoStepVerificationEnabled,
+        authServiceState: {
+          isAuthenticated: this.authService.isAuthenticated,
+          role: this.authService.currentUserRole
+        }
+      });
+    } catch (error) {
+      console.error('Error setting session storage:', error);
+      throw error; // Re-throw to be handled by the caller
     }
   }
 
   get isAuthenticated(): boolean {
-    return !!sessionStorage.getItem('jwt');
+    const jwt = sessionStorage.getItem('jwt');
+    const isAuth = sessionStorage.getItem('isAuthenticated');
+    return !!jwt && isAuth === 'true';
   }
 }
