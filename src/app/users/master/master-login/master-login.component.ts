@@ -85,14 +85,19 @@ export class MasterLoginComponent implements OnInit {
         }
       },
       error: (error) => {
+        // The error object is already the error response from the interceptor
+        const errorMessage = error?.errorMessage || 
+                           error?.message || 
+                           'Failed to send OTP. Please try again.';
+                           
         this.popupService.showPopup(
           PopupType.ERROR,
           'Error',
-          error.error?.message || 'Failed to send OTP. Please try again.',
+          errorMessage,
           undefined, // onCancel
           undefined, // onConfirm
-          undefined, // cancelButtonText
-          'OK' // confirmButtonText
+          'OK', // confirmButtonText
+          undefined // navigateTo
         );
       }
     });

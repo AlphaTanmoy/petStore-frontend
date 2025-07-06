@@ -82,7 +82,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   // Implement OnInit
   ngOnInit(): void {
-    // Load navbar items with cache busting
+    // Initial load of navbar items
     this.loadNavbarItems(true);
     
     // Subscribe to popup state changes
@@ -96,24 +96,47 @@ export class NavbarComponent implements OnInit, OnDestroy {
     
     // Subscribe to auth state changes
     this.subscriptions.add(
-      this.authService.currentUser$.subscribe(() => {
-        // Force refresh navbar items when auth state changes
-        this.loadNavbarItems(true);
+      this.authService.currentUser$.subscribe(({ isAuthenticated, role }) => {
+        console.log('Auth state changed - isAuthenticated:', isAuthenticated, 'role:', role);
+        
+        // Clear the navbar cache and reload items when auth state changes
+        this.navbarService.refreshNavbarItems().subscribe({
+          next: (items) => {
+            const transformedItems = this.transformNavbarItems(items);
+            this.navbarItems = this.addUiStateToItems(transformedItems);
+            this.updateActiveStates();
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Error refreshing navbar items:', error);
+          }
+        });
+        
+        // If user just logged out, ensure we're on the home page
+        if (!isAuthenticated && this.router.url !== '/') {
+          this.router.navigate(['/']);
+        }
       })
     );
     
     // Subscribe to route changes to update active states
     this.subscriptions.add(
       this.router.events.pipe(
-        filter(event => event instanceof NavigationEnd)
-      ).subscribe(() => {
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+      ).subscribe((event) => {
+        console.log('Navigation end:', event.url);
         this.updateActiveStates();
       })
     );
     
     // Add window focus event to refresh on tab focus
     window.addEventListener('focus', this.handleWindowFocus);
+    
+    // Initial update of active states
+    this.updateActiveStates();
   }
+  
+
 
   // Implement OnDestroy
   ngOnDestroy(): void {
@@ -137,7 +160,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.navbarService.getFilteredNavbarItems().subscribe({
         next: (items: NavbarItem[]) => {
-          this.navbarItems = this.addUiStateToItems(items);
+          // Transform the navbar items based on authentication status
+          const transformedItems = this.transformNavbarItems(items);
+          this.navbarItems = this.addUiStateToItems(transformedItems);
           this.updateActiveStates();
           
           // Trigger change detection
@@ -149,6 +174,42 @@ export class NavbarComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+  
+  private transformNavbarItems(items: NavbarItem[]): NavbarItem[] {
+    const isAuthenticated = this.authService.isAuthenticated;
+    
+    return items.map(item => {
+      // Create a new item to avoid mutating the original
+      const newItem = { ...item };
+      
+      // Handle login/logout transformation
+      if (item.menuName.toLowerCase() === 'login' && isAuthenticated) {
+        newItem.menuName = 'Logout';
+        newItem.menuLink = '/logout';
+        newItem.clickHandler = (event: Event) => this.onLogout(event);
+      } else if (item.menuName.toLowerCase() === 'logout' && !isAuthenticated) {
+        newItem.menuName = 'Login';
+        newItem.menuLink = '/login';
+        newItem.clickHandler = undefined;
+      }
+      
+      // Handle register/profile transformation
+      if (item.menuName.toLowerCase() === 'register' && isAuthenticated) {
+        newItem.menuName = 'Profile';
+        newItem.menuLink = '/profile';
+      } else if (item.menuName.toLowerCase() === 'profile' && !isAuthenticated) {
+        newItem.menuName = 'Register';
+        newItem.menuLink = '/register';
+      }
+      
+      // Recursively transform submenu items
+      if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
+        newItem.listOfSubMenu = this.transformNavbarItems(item.listOfSubMenu);
+      }
+      
+      return newItem;
+    });
   }
 
   isActive(item: NavbarItem): boolean {
@@ -166,24 +227,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * @param event The click event
    */
   onLogout(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     
-    // Show confirmation popup
+    // Show confirmation dialog
     this.popupService.showPopup(
       PopupType.WARNING,
       'Logout',
       'Are you sure you want to logout?',
       () => {
-        // onCancel - do nothing, just close the popup
+        // User cancelled
+        console.log('Logout cancelled');
       },
       () => {
-        // onConfirm - handle logout
+        // User confirmed
         this.handleLogout();
       },
       'Cancel',
-      'Logout',
-      undefined
+      'Logout'
     );
   }
 
@@ -192,38 +255,94 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   private handleLogout(): void {
     try {
-      // AuthService.logout() is synchronous and returns void
+      // Clear auth state and any stored data
       this.authService.logout();
-      this.handleLogoutSuccess();
-    } catch (error) {
+      
+      // Clear the navbar cache to ensure fresh data is loaded
+      this.navbarService.refreshNavbarItems().subscribe({
+        next: (items) => {
+          // Update the navbar items with the transformed items
+          const transformedItems = this.transformNavbarItems(items);
+          this.navbarItems = this.addUiStateToItems(transformedItems);
+          this.updateActiveStates();
+          
+          // Close the mobile menu if open
+          this.isCollapsed = true;
+          
+          // Emit the nav item click to close the sidebar in the layout
+          this.navItemClick.emit();
+          
+          // Show success message
+          this.popupService.showPopup(
+            PopupType.SUCCESS,
+            'Logged Out',
+            'You have been successfully logged out.',
+            undefined,
+            () => {
+              // After the user acknowledges the success message, reload the page
+              // to ensure all components are in a clean state
+              window.location.href = '/';
+            },
+            'OK',
+            ''
+          );
+          
+          // Trigger change detection
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error refreshing navbar items after logout:', error);
+          // Even if there's an error, still show the success message
+          this.showLogoutSuccess();
+        }
+      });
+    } catch (error: unknown) {
       console.error('Error during logout:', error);
-      this.handleLogoutError(error instanceof Error ? error : new Error('Unknown error during logout'));
+      const errorMessage = error instanceof Error 
+        ? error 
+        : new Error('An unknown error occurred during logout');
+      this.handleLogoutError(errorMessage);
     }
   }
-
-  private handleLogoutSuccess(): void {
-    // Clear any cached data
-    this.navbarService.clearCache();
+  
+  private showLogoutSuccess(): void {
     // Close the mobile menu if open
     this.isCollapsed = true;
+    
     // Emit the nav item click to close the sidebar in the layout
     this.navItemClick.emit();
-    // Redirect to home page after logout
-    this.router.navigate(['/']);
+    
+    // Show success message
+    this.popupService.showPopup(
+      PopupType.SUCCESS,
+      'Logged Out',
+      'You have been successfully logged out.',
+      undefined,
+      () => {
+        // After the user acknowledges the success message, reload the page
+        // to ensure all components are in a clean state
+        window.location.href = '/';
+      },
+      'OK',
+      ''
+    );
+    
+    // Trigger change detection
+    this.cdr.detectChanges();
   }
 
   private handleLogoutError(error: Error): void {
     console.error('Logout error:', error);
-    // Show error popup
+    
+    // Show error popup with the error message
     this.popupService.showPopup(
       PopupType.ERROR,
-      'Error',
-      'Failed to logout. Please try again.',
-      undefined, // onCancel (not used for error popup)
-      undefined, // onConfirm (not used for error popup)
-      'OK', // cancelButtonText
-      '', // confirmButtonText (not used)
-      undefined // navigateTo
+      'Logout Error',
+      error.message || 'Failed to logout. Please try again.',
+      undefined, // onCancel
+      undefined, // onConfirm
+      'OK',      // cancelButtonText
+      ''         // confirmButtonText
     );
   }
 
@@ -307,15 +426,33 @@ export class NavbarComponent implements OnInit, OnDestroy {
       return this.hasActiveChild(subItem);
     });
   }
+
   /**
    * Handle navigation item clicks
    * @param event The click event
    * @param item The navigation item that was clicked
    */
   onNavItemClick(event: Event, item: NavbarItem): void {
-    // Prevent default if it's a dropdown toggle
-    if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
+    // Prevent default if it's not an anchor tag
+    if (!(event.target instanceof HTMLAnchorElement)) {
       event.preventDefault();
+    }
+    
+    // Stop event propagation to prevent parent handlers from executing
+    event.stopPropagation();
+
+    // If there's a custom click handler, use it
+    if (item.clickHandler) {
+      try {
+        item.clickHandler(event);
+      } catch (error) {
+        console.error('Error in custom click handler:', error);
+      }
+      return;
+    }
+
+    // Handle dropdown toggle
+    if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
       this.toggleSubMenu(item, event);
       return;
     }
@@ -326,27 +463,52 @@ export class NavbarComponent implements OnInit, OnDestroy {
     // Emit the nav item click to close the sidebar in the layout
     this.navItemClick.emit();
     
-    // If this is a logout link, handle it specially
+    // Handle special cases
     if (item.menuLink === '/logout') {
-      event.preventDefault();
       this.onLogout(event);
       return;
     }
     
-    // For regular navigation items, update active states after a short delay
-    // to ensure the route has changed
+    // For regular navigation items
     if (item.menuLink) {
-      this.router.navigate([item.menuLink]).then(() => {
-        this.updateActiveStates();
-      }).catch(error => {
-        console.error('Navigation error:', error);
-        this.updateActiveStates();
-      });
+      this.router.navigate([item.menuLink])
+        .then((navigated: boolean) => {
+          if (navigated) {
+            this.updateActiveStates();
+          } else {
+            console.warn('Navigation was prevented or cancelled');
+          }
+        })
+        .catch((error: unknown) => {
+          console.error('Navigation error:', error);
+          this.updateActiveStates();
+          
+          // Show error to user
+          let errorMessage = 'Failed to navigate. Please try again.';
+          
+          if (error instanceof Error) {
+            errorMessage = error.message || errorMessage;
+          } else if (error && typeof error === 'object' && 'message' in error) {
+            errorMessage = String(error.message);
+          }
+          
+          this.popupService.showPopup(
+            PopupType.ERROR,
+            'Navigation Error',
+            errorMessage,
+            undefined,
+            undefined,
+            'OK',
+            ''
+          );
+        });
     } else {
       this.updateActiveStates();
     }
     
-    // Toggle expanded state
-    item.isExpanded = !item.isExpanded;
+    // Toggle expanded state if applicable
+    if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
+      item.isExpanded = !item.isExpanded;
+    }
   }
 }

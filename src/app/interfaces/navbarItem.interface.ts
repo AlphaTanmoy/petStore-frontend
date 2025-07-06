@@ -8,4 +8,5 @@ export interface NavbarItem {
     listOfSubMenu?: NavbarItem[]; // Made optional with ?
     isExpanded?: boolean;
     isActive?: boolean;
+    clickHandler?: (event: Event) => void;
 }

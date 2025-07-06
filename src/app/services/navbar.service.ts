@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { NavbarItem } from '../interfaces/navbarItem.interface';
 import { NAVBAR_LIST_TO_DISPLAY } from '../constants/api-endpoints';
+import { AuthService } from './auth.service';
 export interface NavbarApiResponse {
   status: boolean;
   message: string;
@@ -16,6 +17,7 @@ export interface NavbarApiResponse {
 export class NavbarService {
   private apiUrl = NAVBAR_LIST_TO_DISPLAY;
   private cachedNavbarItems: NavbarItem[] | null = null;
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
@@ -65,8 +67,42 @@ export class NavbarService {
   }
 
   getFilteredNavbarItems(): Observable<NavbarItem[]> {
-    // The API handles filtering based on the user's role (from the token)
-    return this.getNavbarItems();
+    return this.getNavbarItems().pipe(
+      map(items => this.filterNavbarItems(items))
+    );
+  }
+  
+  private filterNavbarItems(items: NavbarItem[]): NavbarItem[] {
+    const isAuthenticated = this.authService.isAuthenticated;
+    
+    return items.filter(item => {
+      // Always show items that don't have an auth requirement
+      if (item.menuName.toLowerCase() === 'login' && isAuthenticated) {
+        return false; // Hide login when authenticated
+      }
+      
+      if (item.menuName.toLowerCase() === 'register' && isAuthenticated) {
+        return false; // Hide register when authenticated
+      }
+      
+      if (item.menuName.toLowerCase() === 'logout' && !isAuthenticated) {
+        return false; // Hide logout when not authenticated
+      }
+      
+      if (item.menuName.toLowerCase() === 'profile' && !isAuthenticated) {
+        return false; // Hide profile when not authenticated
+      }
+      
+      // Recursively filter submenus
+      if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
+        item.listOfSubMenu = this.filterNavbarItems(item.listOfSubMenu);
+        
+        // Only keep the item if it has submenus after filtering
+        return item.listOfSubMenu.length > 0;
+      }
+      
+      return true;
+    });
   }
 
   /**
