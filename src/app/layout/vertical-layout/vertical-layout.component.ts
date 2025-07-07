@@ -1,11 +1,11 @@
 import { Component, HostListener, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { NavbarItem } from '../../interfaces/navbarItem.interface';
 import { AuthService } from '../../services/auth.service';
 import { NavbarService } from '../../services/navbar.service';
 import { Observable, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-vertical-layout',
@@ -16,13 +16,15 @@ import { map, tap } from 'rxjs/operators';
     RouterLink,
     RouterLinkActive
   ],
-  template: './vertical-layout.component.html',
-  styleUrl: './vertical-layout.component.css'
+  templateUrl: './vertical-layout.component.html',
+  styleUrls: ['./vertical-layout.component.css']
 })
 export class VerticalLayoutComponent implements OnInit {
   navItems$: Observable<NavbarItem[]> = of([]);
   isMobileView = false;
   isSidebarOpen = true;
+  currentUserRole: string = 'user';
+  currentUser: { role: string | null; isAuthenticated: boolean } | null = null;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
   
   constructor(
@@ -37,10 +39,44 @@ export class VerticalLayoutComponent implements OnInit {
     this.checkViewport();
     this.loadNavItems();
     
-    // Log the current state
-    this.navItems$.subscribe(items => {
-      console.log('Current nav items:', items);
+    // Get current user from auth service
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.currentUserRole = user?.role || 'user';
     });
+    
+    // Close mobile menu on route change
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.isMobileView) {
+        this.isSidebarOpen = false;
+      }
+    });
+  }
+
+
+  
+  isActive(item: NavbarItem): boolean {
+    if (item.menuLink) {
+      return this.router.isActive(item.menuLink, {
+        paths: 'exact',
+        queryParams: 'ignored',
+        fragment: 'ignored',
+        matrixParams: 'ignored'
+      });
+    }
+    return false;
+  }
+
+  isChildActive(item: NavbarItem): boolean {
+    if (!item.listOfSubMenu) return false;
+    return item.listOfSubMenu.some(child => this.isActive(child));
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/master-login']);
   }
 
   private loadNavItems(): void {
@@ -95,6 +131,8 @@ export class VerticalLayoutComponent implements OnInit {
           });
         })
       );
+    } else if (item.menuLink) {
+      this.router.navigate([item.menuLink]);
     }
   }
 
@@ -134,11 +172,16 @@ export class VerticalLayoutComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  toggleSidebar() {
+  toggleSidebar(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     this.isSidebarOpen = !this.isSidebarOpen;
+    
     // Force change detection to update the UI
     this.cdr.detectChanges();
-
     
     // If we're on mobile and opening the sidebar, add a click handler to close it when clicking outside
     if (this.isMobileView && this.isSidebarOpen) {
@@ -154,16 +197,18 @@ export class VerticalLayoutComponent implements OnInit {
   onBackdropClick = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     const sidebar = document.querySelector('.sidebar');
-    const toggleButton = document.querySelector('.toggle-btn');
+    const toggleButton = document.querySelector('.navbar-toggler');
     
-    // Check if the click is outside the sidebar and not on the toggle button
-    if (this.isMobileView && this.isSidebarOpen && 
-        !sidebar?.contains(target) && 
-        !toggleButton?.contains(target)) {
-      this.isSidebarOpen = false;
-      document.removeEventListener('click', this.onBackdropClick);
-      this.cdr.detectChanges();
+    // Don't close if clicking on the sidebar or the toggle button
+    if (sidebar?.contains(target) || toggleButton?.contains(target)) {
+      return;
     }
+    
+    // Close the sidebar
+    if (this.isSidebarOpen) {
+      this.toggleSidebar();
+    }
+    this.cdr.detectChanges();
   };
 
   // Close sidebar when clicking on a nav item (mobile)

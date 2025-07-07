@@ -1,15 +1,60 @@
 <div class="app-container d-flex min-vh-100">
   <!-- Sidebar -->
-  <aside class="sidebar d-flex flex-column flex-shrink-0 bg-dark text-white shadow">
+  <aside class="sidebar d-flex flex-column flex-shrink-0 bg-dark text-white shadow" [class.open]="isSidebarOpen">
     <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary">
       <h1 class="h5 mb-0 text-white">PetStore</h1>
-      <button class="btn btn-link d-lg-none text-white p-0" (click)="toggleSidebar()">
+      <button class="btn btn-link d-lg-none text-white p-0" (click)="toggleSidebar($event)">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
     
+    <!-- Navigation Items -->
     <div class="flex-grow-1 overflow-auto py-3">
-      <app-navbar [isHorizontal]="false" [userRole]="currentUserRole"></app-navbar>
+      <ul class="nav flex-column">
+        <ng-container *ngFor="let item of navItems$ | async">
+          <!-- Menu Item with Submenu -->
+          <li class="nav-item" *ngIf="item.listOfSubMenu?.length">
+            <a class="nav-link d-flex justify-content-between align-items-center" 
+               (click)="toggleDropdown($event, item)"
+               [class.active]="isActive(item) || isChildActive(item)">
+              <span>
+                <span class="menu-icon me-2">
+                  <img *ngIf="item.icon" [src]="item.icon" [alt]="item.menuName + ' icon'" class="svg-icon" onerror="this.style.display='none'" />
+                </span>
+                {{ item.menuName }}
+              </span>
+              <i class="bi" [class.bi-chevron-down]="!item.isExpanded" [class.bi-chevron-up]="item.isExpanded"></i>
+            </a>
+            
+            <!-- Submenu -->
+            <ul class="nav flex-column ps-3" *ngIf="item.isExpanded">
+              <li class="nav-item" *ngFor="let child of item.listOfSubMenu">
+                <a class="nav-link" 
+                   [routerLink]="child.menuLink" 
+                   routerLinkActive="active" 
+                   [routerLinkActiveOptions]="{exact: true}"
+                   (click)="isMobileView && toggleSidebar()">
+                  {{ child.menuName }}
+                </a>
+              </li>
+            </ul>
+          </li>
+          
+          <!-- Single Menu Item -->
+          <li class="nav-item" *ngIf="!item.listOfSubMenu?.length">
+            <a class="nav-link" 
+               [routerLink]="item.menuLink" 
+               routerLinkActive="active" 
+               [routerLinkActiveOptions]="{exact: true}"
+               (click)="isMobileView && toggleSidebar($event)">
+              <span class="menu-icon me-2">
+                <img *ngIf="item.icon" [src]="item.icon" [alt]="item.menuName + ' icon'" class="svg-icon" onerror="this.style.display='none'" />
+              </span>
+              {{ item.menuName }}
+            </a>
+          </li>
+        </ng-container>
+      </ul>
     </div>
     
     <!-- User Info -->
@@ -21,20 +66,25 @@
           </div>
         </div>
         <div class="flex-grow-1">
-          <div class="fw-medium">{{ currentUserRole | titlecase }}</div>
+          <div class="fw-medium">{{ currentUser?.role || 'User' | titlecase }}</div>
           <small class="text-muted">Admin User</small>
         </div>
+      </div>
+      <div class="mt-2">
+        <button class="btn btn-outline-light btn-sm w-100" (click)="logout()">
+          <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </button>
       </div>
     </div>
   </aside>
 
   <!-- Main Content -->
-  <div class="main-content d-flex flex-column flex-grow-1">
+  <div class="main-content flex-grow-1 d-flex flex-column">
     <!-- Top Navigation (for mobile) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary d-lg-none">
       <div class="container-fluid">
-        <button class="btn btn-link text-white" (click)="toggleSidebar()">
-          <i class="bi bi-list"></i>
+        <button class="navbar-toggler" type="button" (click)="toggleSidebar($event)">
+          <span class="navbar-toggler-icon"></span>
         </button>
         <span class="navbar-brand mx-auto">PetStore</span>
       </div>

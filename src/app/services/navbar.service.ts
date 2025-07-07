@@ -64,7 +64,8 @@ export class NavbarService {
               path: path,
               isExpanded: false,
               isActive: false,
-              listOfSubMenu: subMenu
+              listOfSubMenu: subMenu,
+              icon: item.svgFileDataLink // Use the full SVG URL as the icon
             };
             
             // Safe access to listOfSubMenu since we've ensured it's an array

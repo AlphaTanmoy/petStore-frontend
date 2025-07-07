@@ -1,13 +1,59 @@
 <div class="app-container d-flex flex-column min-vh-100">
-  <!-- Header with Navbar -->
-  <header class="bg-primary text-white shadow-sm">
+  <!-- Top Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container-fluid">
-      <div class="d-flex align-items-center py-2">
-        <h1 class="h4 mb-0 me-3">PetStore</h1>
-        <app-navbar [isHorizontal]="true" [userRole]="currentUserRole"></app-navbar>
+      <a class="navbar-brand me-4" href="#">PetStore</a>
+      
+      <!-- Mobile menu button -->
+      <button class="navbar-toggler" type="button" (click)="toggleMobileMenu()" aria-controls="navbarNav" [attr.aria-expanded]="isMobileMenuOpen">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <!-- Navigation items -->
+      <div class="collapse navbar-collapse" [class.show]="isMobileMenuOpen" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li *ngFor="let item of navItems$ | async" class="nav-item" [class.dropdown]="item.listOfSubMenu?.length">
+            <ng-container *ngIf="!item.listOfSubMenu?.length">
+              <a class="nav-link" [routerLink]="item.menuLink" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i *ngIf="item.icon" [class]="'me-2 ' + item.icon"></i>
+                {{ item.menuName }}
+              </a>
+            </ng-container>
+            
+            <ng-container *ngIf="item.listOfSubMenu?.length">
+              <a class="nav-link dropdown-toggle" (click)="toggleDropdown(item)" [class.active]="isActive(item) || isChildActive(item)">
+                <i *ngIf="item.icon" [class]="'me-2 ' + item.icon"></i>
+                {{ item.menuName }}
+              </a>
+              <ul class="dropdown-menu" [class.show]="item.isExpanded">
+                <li *ngFor="let child of item.listOfSubMenu" class="dropdown-item">
+                  <a class="nav-link" [routerLink]="child.menuLink" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                    {{ child.menuName }}
+                  </a>
+                </li>
+              </ul>
+            </ng-container>
+          </li>
+        </ul>
+        
+        <!-- User menu -->
+        <div class="d-flex align-items-center">
+          <div class="dropdown">
+            <button class="btn btn-link text-white dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-circle me-2"></i>
+              <span class="d-none d-sm-inline">{{ currentUser?.role || 'User' }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
-  </header>
+  </nav>
 
   <!-- Main Content -->
   <main class="flex-grow-1 py-4">
