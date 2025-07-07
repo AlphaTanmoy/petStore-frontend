@@ -219,4 +219,22 @@ export class VerticalLayoutComponent implements OnInit {
       this.cdr.detectChanges();
     }
   }
+
+  // Close sidebar when route changes
+  onRouteActivate() {
+    if (this.isMobileView && this.isSidebarOpen) {
+      this.isSidebarOpen = false;
+      document.removeEventListener('click', this.onBackdropClick);
+      this.cdr.detectChanges();
+    }
+  }
+
+  // Handle clicks on the main content area
+  onContentClick() {
+    if (this.isMobileView && this.isSidebarOpen) {
+      this.isSidebarOpen = false;
+      document.removeEventListener('click', this.onBackdropClick);
+      this.cdr.detectChanges();
+    }
+  }
 }
