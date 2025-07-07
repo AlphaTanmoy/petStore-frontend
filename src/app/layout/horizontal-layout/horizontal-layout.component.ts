@@ -123,4 +123,11 @@ export class HorizontalLayoutComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/master-login']);
   }
+
+  // Close mobile menu when route changes
+  onRouteActivate(): void {
+    if (this.isMobileView) {
+      this.isMobileMenuOpen = false;
+    }
+  }
 }
