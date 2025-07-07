@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MasterDashboardComponent } from './master-dashboard.component';
+import { MvnManagementComponent } from './mvn-management.component';
 
-describe('MasterDashboardComponent', () => {
-  let component: MasterDashboardComponent;
-  let fixture: ComponentFixture<MasterDashboardComponent>;
+describe('MvnManagementComponent', () => {
+  let component: MvnManagementComponent;
+  let fixture: ComponentFixture<MvnManagementComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MasterDashboardComponent]
+      imports: [MvnManagementComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MasterDashboardComponent);
+    fixture = TestBed.createComponent(MvnManagementComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
