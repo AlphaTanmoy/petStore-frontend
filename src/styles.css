@@ -225,6 +225,26 @@
   animation: pulse 2s infinite;
 }
 
+/* Global text color overrides */
+body {
+  color: #212529;
+}
+
+/* Ensure all text in sidebar is white */
+.sidebar,
+.sidebar *:not(.bi) {
+  color: white !important;
+}
+
+/* Force white text in navigation */
+.nav-link,
+.nav-link span,
+.nav-link i,
+.nav-item,
+.nav-item * {
+  color: white !important;
+}
+
 /* Custom button styles */
 .btn-custom {
   transition: all 0.3s ease;

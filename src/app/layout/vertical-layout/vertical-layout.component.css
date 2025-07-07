@@ -13,8 +13,9 @@
   left: 0;
   top: 0;
   overflow-y: auto;
-  background-color: #343a40;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  background-color: var(--primary-color);
+  box-shadow: rgba(151, 195, 202, 0.1);
+  color: white;
 }
 
 /* Main content area */
@@ -22,13 +23,27 @@
   margin-left: 250px; /* Same as sidebar width */
   min-height: 100vh;
   transition: all 0.3s ease-in-out;
-  background-color: #f8f9fa;
+  background-color: #ffffff; /* White background */
+  color: #212529; /* Dark gray text for better readability */
   width: calc(100% - 250px);
 }
 
 /* Navigation items */
 .nav {
   padding: 0.5rem 0;
+}
+
+/* Ensure all text in sidebar is white */
+.sidebar,
+.sidebar *:not(.bi) {
+  color: white !important;
+}
+
+/* Override for specific elements if needed */
+.sidebar .nav-link,
+.sidebar .nav-link span,
+.sidebar .nav-link i {
+  color: white !important;
 }
 
 /* SVG Icons */
@@ -57,7 +72,7 @@
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.75);
+  color: white !important;
   padding: 0.75rem 1.5rem;
   transition: all 0.2s;
   border-left: 3px solid transparent;
@@ -66,15 +81,34 @@
   cursor: pointer;
 }
 
+/* Ensure text in links remains white on hover/active */
+.nav-link:hover,
+.nav-link:active,
+.nav-link:focus,
+.nav-link.active {
+  color: white !important;
+}
+
+/* Force white color for all text in sidebar */
+.sidebar {
+  --bs-text-opacity: 1;
+  color: white !important;
+}
+
+.sidebar * {
+  color: inherit !important;
+}
+
 .nav-link:hover {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  background-color: var(--primary-hover);
 }
 
 .nav-link.active {
-  color: #fff;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-left-color: #0d6efd;
+  color: white;
+  background-color: var(--primary-light);
+  border-left-color: white;
+  font-weight: 500;
 }
 
 /* Submenu items */
@@ -85,13 +119,19 @@
 .nav .nav .nav-link {
   padding: 0.5rem 1.5rem 0.5rem 2.5rem;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: white; /* White text for better contrast */
+  background-color: var(--primary-light);
 }
 
 .nav .nav .nav-link:hover,
 .nav .nav .nav-link.active {
-  color: #fff;
-  background-color: rgba(0, 0, 0, 0.15);
+  color: white;
+  background-color: var(--primary-hover);
+}
+
+.nav .nav .nav-link.active {
+  font-weight: 500;
+  border-left-color: white;
 }
 
 /* Mobile responsiveness */
@@ -102,7 +142,7 @@
   
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+    box-shadow: rgba(151, 195, 202, 0.1);
   }
   
   .main-content {
@@ -118,7 +158,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(151, 195, 202, 0.1);
     z-index: 999;
   }
 }

@@ -1,8 +1,11 @@
 <div class="app-container d-flex min-vh-100">
   <!-- Sidebar -->
-  <aside class="sidebar d-flex flex-column flex-shrink-0 bg-dark text-white shadow" [class.open]="isSidebarOpen">
+  <aside class="sidebar d-flex flex-column flex-shrink-0 text-white shadow" [class.open]="isSidebarOpen" style="background-color: var(--primary-color); color: white !important;">
     <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary">
-      <h1 class="h5 mb-0 text-white">PetStore</h1>
+      <div class="d-flex align-items-center">
+        <img src="/logo.png" alt="PetStore Logo" class="me-2" style="height: 30px; width: auto;">
+        <h1 class="h5 mb-0 text-white d-none d-sm-block">PetStore</h1>
+      </div>
       <button class="btn btn-link d-lg-none text-white p-0" (click)="toggleSidebar($event)">
         <i class="bi bi-x-lg"></i>
       </button>
@@ -17,11 +20,11 @@
             <a class="nav-link d-flex justify-content-between align-items-center" 
                (click)="toggleDropdown($event, item)"
                [class.active]="isActive(item) || isChildActive(item)">
-              <span>
+              <span style="color: white !important;">
                 <span class="menu-icon me-2">
-                  <img *ngIf="item.icon" [src]="item.icon" [alt]="item.menuName + ' icon'" class="svg-icon" onerror="this.style.display='none'" />
+                  <img *ngIf="item.icon" [src]="item.icon" [alt]="item.menuName + ' icon'" class="svg-icon" style="filter: brightness(0) invert(1);" onerror="this.style.display='none'" />
                 </span>
-                {{ item.menuName }}
+                <span style="color: white !important;">{{ item.menuName }}</span>
               </span>
               <i class="bi" [class.bi-chevron-down]="!item.isExpanded" [class.bi-chevron-up]="item.isExpanded"></i>
             </a>
@@ -50,7 +53,7 @@
               <span class="menu-icon me-2">
                 <img *ngIf="item.icon" [src]="item.icon" [alt]="item.menuName + ' icon'" class="svg-icon" onerror="this.style.display='none'" />
               </span>
-              {{ item.menuName }}
+              <span style="color: white !important;">{{ item.menuName }}</span>
             </a>
           </li>
         </ng-container>
@@ -66,8 +69,8 @@
           </div>
         </div>
         <div class="flex-grow-1">
-          <div class="fw-medium">{{ currentUser?.role || 'User' | titlecase }}</div>
-          <small class="text-muted">Admin User</small>
+          <div class="fw-medium text-white">{{ currentUser?.role || 'User' | titlecase }}</div>
+          <small class="text-white-50">Admin User</small>
         </div>
       </div>
       <div class="mt-2">
@@ -91,7 +94,7 @@
     </nav>
 
     <!-- Page Content -->
-    <main class="flex-grow-1 p-3 p-lg-4">
+    <main class="flex-grow-1 p-3 p-lg-4" style="color: #212529;">
       <router-outlet></router-outlet>
     </main>
   </div>

@@ -41,6 +41,12 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit() {
+    // Clear any existing OTP state
+    this.clearOTPState();
+    
+    // Check if user is already authenticated
+    this.checkAuthentication();
+
     // Get user type from route params
     this.route.params.subscribe((params: { [key: string]: string }) => {
       if (params['type']) {
@@ -78,6 +84,7 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Start resend timer on component init
     this.isResendDisabled = true;
+    this.resendTimer = 60;
     this.startResendTimer();
   }
 
@@ -338,7 +345,8 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
           );
           this.isResendDisabled = true;
           this.resendTimer = 60;
-          this.startResendTimer();
+          this.resendTimer = 60;
+    this.startResendTimer();
         } else {
           // Handle case where status is false
           const errorMsg = response?.errorMessage || response?.message || 'Failed to resend OTP. Please try again.';
@@ -374,6 +382,64 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  ngOnDestroy() {
+    // Clean up the timer subscription
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+    }
+    
+    // Clear OTP state when component is destroyed
+    this.clearOTPState();
+  }
+
+  private clearOTPState() {
+    // Reset OTP input fields
+    this.otp = ['', '', '', '', '', ''];
+    this.isSendDisabled = false;
+    this.isResendDisabled = false;
+    this.resendTimer = 60;
+    this.loading = false;
+    
+    // Clear any stored OTP verification state
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('otp_verification_in_progress');
+      localStorage.removeItem('otp_email');
+      localStorage.removeItem('otp_user_type');
+    }
+  }
+
+  private checkAuthentication() {
+    // Check if user is already authenticated
+    const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+    const userRole = sessionStorage.getItem('userRole');
+    
+    if (isAuthenticated === 'true' && userRole) {
+      // User is already authenticated, redirect to appropriate dashboard
+      const routeMap: { [key: string]: string } = {
+        [UserTypes.ROLE_ADMIN]: '/admin/dashboard',
+        [UserTypes.ROLE_CUSTOMER]: '/user/dashboard',
+        [UserTypes.ROLE_SELLER]: '/seller/dashboard',
+        [UserTypes.ROLE_DOCTOR]: '/doctor/dashboard',
+        [UserTypes.ROLE_CUSTOMER_CARE]: '/customer-care/dashboard',
+        [UserTypes.ROLE_RAIDER]: '/raider/dashboard',
+        [UserTypes.ROLE_MASTER]: '/master/dashboard'
+      };
+
+      const targetRoute = routeMap[userRole as UserTypes] || '/login';
+      this.router.navigate([targetRoute]);
+    }
+  }
+
+  /**
+   * Checks if all OTP digits have been entered
+   */
+  isOtpComplete(): boolean {
+    return this.otp.every(digit => !!digit);
+  }
+
+  /**
+   * Starts the resend OTP timer
+   */
   private startResendTimer() {
     this.timerSubscription?.unsubscribe();
     this.timerSubscription = interval(1000).subscribe(() => {
@@ -384,13 +450,5 @@ export class OtpComponentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.timerSubscription?.unsubscribe();
       }
     });
-  }
-
-  isOtpComplete(): boolean {
-    return this.otp.every(digit => !!digit);
-  }
-
-  ngOnDestroy() {
-    this.timerSubscription?.unsubscribe();
   }
 }

@@ -1,11 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarItem } from '../../interfaces/navbarItem.interface';
 import { AuthService } from '../../services/auth.service';
 import { NavbarService } from '../../services/navbar.service';
 import { Observable, of, filter } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-horizontal-layout',
@@ -78,14 +78,18 @@ export class HorizontalLayoutComponent implements OnInit {
 
   private loadNavItems(): void {
     this.navItems$ = this.navbarService.getNavbarItems().pipe(
-      tap(items => console.log('Loaded navbar items (horizontal):', items)),
-      map(items => items.map(item => ({
-        ...item,
-        isExpanded: false
-      })))
+      map((items: NavbarItem[]) => this.processNavItems(items))
     );
   }
-  
+
+  private processNavItems(items: NavbarItem[]): NavbarItem[] {
+    return items.map((item: NavbarItem) => ({
+      ...item,
+      isExpanded: false,
+      listOfSubMenu: item.listOfSubMenu ? this.processNavItems(item.listOfSubMenu) : undefined
+    }));
+  }
+
   toggleDropdown(item: NavbarItem): void {
     if (item.listOfSubMenu && item.listOfSubMenu.length) {
       item.isExpanded = !item.isExpanded;
