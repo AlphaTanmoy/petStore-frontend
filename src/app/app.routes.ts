@@ -11,6 +11,7 @@ import { MasterLoginComponent } from './users/master/master-login/master-login.c
 import { AdminDashboardComponent } from './users/admins/admin-dashboard/admin-dashboard.component';
 import { AuthGuardService } from './services/auth-guard.service';
 import { UserTypes } from './constants/enums/user-types';
+import { ViewCustomersComponent } from './users/customers/view-customers/view-customers.component';
 
 export const routes: Routes = [
   {
@@ -79,13 +80,21 @@ export const routes: Routes = [
     component: MasterLoginComponent,
     title: 'Master Login'
   },
+  {
+    path: 'view-customers',
+    component: ViewCustomersComponent,
+    title: 'View Customers',
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: [UserTypes.ROLE_ADMIN, UserTypes.ROLE_MASTER] }
+  },
 
 
 
-
-
-
-
+  {
+    path: 'error',
+    component: ErrorPageComponent,
+    title: 'Page Not Found'
+  },
   
   {
     path: '**',

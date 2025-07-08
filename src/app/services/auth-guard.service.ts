@@ -1,18 +1,18 @@
-// Simple auth guard implementation
-const Injectable = (): ClassDecorator => {
-  return (target: any) => {};
-};
+import { Injectable } from '@angular/core';
+import { CanActivate, Router } from '@angular/router';
 
-@Injectable()
-export class AuthGuardService {
-  constructor(private router: any) {}
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuardService implements CanActivate {
+  constructor(private router: Router) {}
 
   canActivate(route: any, state: any): boolean | Promise<boolean> {
     const userRole = this.getUserRole();
     const allowedRoles = route?.data?.allowedRoles || [];
 
     if (!userRole) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/error']);
       return false;
     }
 
@@ -25,15 +25,15 @@ export class AuthGuardService {
   }
 
   private getUserRole(): string | null {
-    return sessionStorage.getItem('userrole');
+    return sessionStorage.getItem('userRole');
   }
 
   setUserRole(role: string): void {
-    sessionStorage.setItem('userrole', role);
+    sessionStorage.setItem('userRole', role);
   }
 
   clearUserRole(): void {
-    sessionStorage.removeItem('userrole');
+    sessionStorage.removeItem('userRole');
   }
 
   hasPermission(requiredRole: string): boolean {

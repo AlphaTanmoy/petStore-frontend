@@ -8,7 +8,7 @@ export const MANAGEMENT_URL = 'http://localhost:8086';
 export const PAYMENT_URL = 'http://localhost:8087';
 export const S3_URL = 'http://localhost:8088';
 export const SELLER_URL = 'http://localhost:8089';
-export const USER_URL = 'http://localhost:8090';
+export const USER_URL = 'http://localhost:8091';
 
 // Authentication Endpoints
 export const AUTH_SEND_OTP = AUTH_URL + '/sent/otp';
@@ -45,3 +45,5 @@ export const MASTER_SEND_OTP = ADMIN_URL + '/sent/otp';
 // Core Endpoints
 export const NAVBAR_LIST = CORE_URL + '/navbar/get';
 export const NAVBAR_LIST_TO_DISPLAY = CORE_URL + '/navbar/getNavbarListToDisplay';
+
+export const GET_ALL_CUSTOMERS = USER_URL + '/customer/getAll';

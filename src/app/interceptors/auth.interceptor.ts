@@ -5,12 +5,12 @@ export function authInterceptor(
   request: HttpRequest<any>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<any>> {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('jwt');
 
   if (token) {
     request = request.clone({
       setHeaders: {
-        Authorization: `Alpha ${token}`
+        'Alpha': `Alpha ${token}`
       }
     });
   }
