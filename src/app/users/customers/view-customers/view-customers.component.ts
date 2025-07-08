@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { CustomerViewService } from '../../../services/customer.view.service';
 import { PopupService } from '../../../services/popup.service';
 import { PopupType } from '../../../constants/enums/popup-types';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { LoaderComponent } from '../../../page-components/loader/loader.component';
+import { SingleSelectComponent } from '../../../page-components/single-select/single-select.component';
 
 interface Customer {
   id: string;
@@ -20,12 +23,15 @@ interface ApiResponse {
   offsetToken: string | null;
   recordCount: number;
 }
+
 @Component({
   selector: 'app-view-customers',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    LoaderComponent,
+    SingleSelectComponent
   ],
   templateUrl: './view-customers.component.html',
   styleUrls: ['./view-customers.component.css']
@@ -43,13 +49,21 @@ export class ViewCustomersComponent implements OnInit, AfterViewInit {
   searchText = '';
   isPrime = false;
 
-  // For debouncing search
-  private searchTimeout: any;
-
+  // Handle search input changes with debounce
+  private searchSubject = new Subject<string>();
+  
   constructor(
     private customerService: CustomerViewService,
     private popupService: PopupService
-  ) {}
+  ) {
+    // Debounce search input
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.onFilterChange();
+    });
+  }
 
   ngOnInit(): void {
     this.fetchCustomers();
@@ -160,14 +174,14 @@ export class ViewCustomersComponent implements OnInit, AfterViewInit {
   }
 
   onSearchChange(): void {
-    // Debounce search to avoid too many API calls
-    if (this.searchTimeout) {
-      clearTimeout(this.searchTimeout);
-    }
+    this.searchSubject.next(this.searchText);
+  }
 
-    this.searchTimeout = setTimeout(() => {
-      this.applyFilters();
-    }, 300);
+  // Handle role filter change from custom select
+  onRoleChange(role: string | null): void {
+    // Convert 'All Roles' to empty string for filtering
+    this.filterRole = role === 'All Roles' ? '' : (role || '');
+    this.onFilterChange();
   }
 
   onFilterChange(): void {

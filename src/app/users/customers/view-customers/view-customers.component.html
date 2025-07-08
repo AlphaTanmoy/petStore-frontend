@@ -7,13 +7,13 @@
     <div class="card-body py-3">
       <form class="row g-3">
         <div class="col-md-4">
-          <label for="roleFilter" class="form-label small fw-bold text-muted mb-1">ROLE</label>
-          <select id="roleFilter" class="form-select form-select-sm" [(ngModel)]="filterRole" 
-                  name="roleFilter" (change)="onFilterChange()">
-            <option value="">All Roles</option>
-            <option value="ROLE_CUSTOMER">Customer</option>
-            <option value="ROLE_MASTER">Master</option>
-          </select>
+          <label class="form-label small fw-bold text-muted mb-1">ROLE</label>
+          <app-single-select 
+            [options]="['All Roles', 'ROLE_CUSTOMER', 'ROLE_MASTER']"
+            [selectedOption]="filterRole || 'All Roles'"
+            (selectionChange)="onRoleChange($event)"
+            placeholder="Select role"
+          ></app-single-select>
         </div>
         
         <div class="col-md-5">
@@ -26,8 +26,8 @@
               id="searchInput"
               type="search" 
               class="form-control" 
-              [(ngModel)]="searchText" 
-              (input)="onSearchChange()"
+              [(ngModel)]="searchText"
+              (ngModelChange)="onSearchChange()"
               name="searchInput"
               placeholder="Search by name or email" 
             />
@@ -55,93 +55,94 @@
     </div>
   </div>
 
-  <!-- Customer Table -->
-  <div class="card shadow-sm">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th class="ps-3 small text-uppercase text-muted fw-bold">Name</th>
-            <th class="small text-uppercase text-muted fw-bold">Email</th>
-            <th class="small text-uppercase text-muted fw-bold">Tire</th>
-            <th class="small text-uppercase text-muted fw-bold">Role</th>
-            <th class="small text-uppercase text-muted fw-bold">Status</th>
-            <th class="small text-uppercase text-muted fw-bold">Member Since</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (filteredCustomers.length > 0) {
-            @for (customer of filteredCustomers; track customer.id) {
-              <tr class="cursor-pointer">
-                <td class="ps-3 fw-medium">{{ customer.fullName || 'N/A' }}</td>
-                <td>
-                  <a href="mailto:{{customer.emailId}}" class="text-decoration-none text-primary">
-                    {{ customer.emailId || 'N/A' }}
-                  </a>
-                </td>
-                <td>
-                  <span class="badge bg-light text-dark">
-                    {{ customer.tireCode || 'N/A' }}
-                  </span>
-                </td>
-                <td>
-                  <span class="badge" 
-                        [ngClass]="customer.userRole === 'ROLE_MASTER' ? 'bg-primary' : 'bg-secondary'">
-                    {{ customer.userRole ? customer.userRole.replace('ROLE_', '') : 'N/A' }}
-                  </span>
-                </td>
-                <td>
-                  <span class="badge d-inline-flex align-items-center" 
-                        [ngClass]="customer.isPrimeMember ? 'bg-success' : 'bg-secondary'">
-                    <i class="bi me-1" 
-                       [class.bi-star-fill]="customer.isPrimeMember" 
-                       [class.bi-star]="!customer.isPrimeMember"></i>
-                    {{ customer.isPrimeMember ? 'Prime' : 'Regular' }}
-                  </span>
-                </td>
-                <td class="text-muted">
-                  {{ customer.createdDate ? (customer.createdDate | date: 'mediumDate') : 'N/A' }}
+  <!-- Loading State -->
+  @if (isLoading && isInitialLoad) {
+    <div class="d-flex justify-content-center my-5">
+      <app-loader 
+        size="large" 
+        color="#0d6efd"
+        message="Loading customers..."
+      ></app-loader>
+    </div>
+  } @else {
+    <!-- Customer Table -->
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3 small text-uppercase text-muted fw-bold">Name</th>
+              <th class="small text-uppercase text-muted fw-bold">Email</th>
+              <th class="small text-uppercase text-muted fw-bold">Tire</th>
+              <th class="small text-uppercase text-muted fw-bold">Role</th>
+              <th class="small text-uppercase text-muted fw-bold">Status</th>
+              <th class="small text-uppercase text-muted fw-bold">Member Since</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (filteredCustomers.length > 0) {
+              @for (customer of filteredCustomers; track customer.id) {
+                <tr class="cursor-pointer">
+                  <td class="ps-3 fw-medium">{{ customer.fullName || 'N/A' }}</td>
+                  <td>
+                    <a href="mailto:{{customer.emailId}}" class="text-decoration-none text-primary">
+                      {{ customer.emailId || 'N/A' }}
+                    </a>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark">
+                      {{ customer.tireCode || 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" 
+                          [ngClass]="customer.userRole === 'ROLE_MASTER' ? 'bg-primary' : 'bg-secondary'">
+                      {{ customer.userRole ? customer.userRole.replace('ROLE_', '') : 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge d-inline-flex align-items-center" 
+                          [ngClass]="customer.isPrimeMember ? 'bg-success' : 'bg-secondary'">
+                      <i class="bi me-1" 
+                         [class.bi-star-fill]="customer.isPrimeMember" 
+                         [class.bi-star]="!customer.isPrimeMember"></i>
+                      {{ customer.isPrimeMember ? 'Prime' : 'Regular' }}
+                    </span>
+                  </td>
+                  <td class="text-muted">
+                    {{ customer.createdDate ? (customer.createdDate | date: 'mediumDate') : 'N/A' }}
+                  </td>
+                </tr>
+              }
+            } @else if (!isLoading) {
+              <tr>
+                <td colspan="6" class="text-center py-5">
+                  <i class="bi bi-people fs-1 text-muted opacity-50 d-block mb-3"></i>
+                  <h5 class="h6 fw-bold mb-2">No customers found</h5>
+                  <p class="small text-muted mb-0">
+                    @if (filterRole || searchText || isPrime) {
+                      Try adjusting your filters
+                    } @else {
+                      No customer data available
+                    }
+                  </p>
                 </td>
               </tr>
             }
-          } @else if (isLoading) {
-            <tr>
-              <td colspan="6" class="text-center py-5">
-                <div class="d-flex justify-content-center align-items-center">
-                  <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <span class="small text-muted">Loading customers...</span>
-                </div>
-              </td>
-            </tr>
-          } @else {
-            <tr>
-              <td colspan="6" class="text-center py-5">
-                <i class="bi bi-people fs-1 text-muted opacity-50 d-block mb-3"></i>
-                <h5 class="h6 fw-bold mb-2">No customers found</h5>
-                <p class="small text-muted mb-0">
-                  @if (filterRole || searchText || isPrime) {
-                    Try adjusting your filters
-                  } @else {
-                    No customer data available
-                  }
-                </p>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Loading indicator for infinite scroll -->
-  @if (isLoading && !isInitialLoad) {
-    <div class="d-flex justify-content-center my-3">
-      <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-        <span class="visually-hidden">Loading more...</span>
+          </tbody>
+        </table>
       </div>
-      <span class="small text-muted">Loading more customers...</span>
     </div>
+
+    <!-- Loading indicator for infinite scroll -->
+    @if (isLoading && !isInitialLoad) {
+      <div class="d-flex justify-content-center my-3">
+        <app-loader 
+          size="small" 
+          color="#0d6efd"
+          message="Loading more customers..."
+        ></app-loader>
+      </div>
+    }
   }
 </div>
