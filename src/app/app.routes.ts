@@ -4,8 +4,7 @@ import { ErrorPageComponent } from './page-components/error-page/error-page.comp
 import { UnAuthorizedComponent } from './page-components/un-authorized/un-authorized.component';
 import { HomeComponent } from './page-components/home/home.component';
 import { DatePickerDemoComponent } from './page-components/date-picker/date-picker-demo.component';
-import { SingleSelectDemoComponent } from './page-components/single-select/single-select-demo.component';
-import { MultiSelectDemoComponent } from './page-components/multi-select/multi-select-demo.component';
+
 import { AdminLoginComponent } from './users/admins/admin-login/admin-login.component';
 import { MasterLoginComponent } from './users/master/master-login/master-login.component';
 import { AdminDashboardComponent } from './users/admins/admin-dashboard/admin-dashboard.component';
@@ -49,16 +48,7 @@ export const routes: Routes = [
     component: DatePickerDemoComponent,
     title: 'Date Picker Demo'
   },
-  {
-    path: 'single-select-demo',
-    component: SingleSelectDemoComponent,
-    title: 'Single Select Demo'
-  },
-  {
-    path: 'multi-select-demo',
-    component: MultiSelectDemoComponent,
-    title: 'Multi Select Demo'
-  },
+
 
   {
     path: 'admin-login',
