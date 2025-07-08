@@ -1,10 +1,12 @@
-@if (isAuthenticated) {
-  <app-vertical-layout>
-    <router-outlet></router-outlet>
-  </app-vertical-layout>
-} @else {
-  <app-horizontal-layout>
-    <router-outlet></router-outlet>
-  </app-horizontal-layout>
-}
-<app-popup></app-popup>
+<div class="app-container">
+  @if (isAuthenticated) {
+    <app-vertical-layout>
+      <router-outlet></router-outlet>
+    </app-vertical-layout>
+  } @else {
+    <app-horizontal-layout>
+      <router-outlet></router-outlet>
+    </app-horizontal-layout>
+  }
+  <app-popup></app-popup>
+</div>

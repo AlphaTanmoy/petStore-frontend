@@ -81,21 +81,18 @@ export const routes: Routes = [
     title: 'Master Login'
   },
   {
-    path: 'view-customers',
-    component: ViewCustomersComponent,
-    title: 'View Customers',
-    canActivate: [AuthGuardService],
-    data: { allowedRoles: [UserTypes.ROLE_ADMIN, UserTypes.ROLE_MASTER] }
-  },
-
-
-
-  {
     path: 'error',
     component: ErrorPageComponent,
     title: 'Page Not Found'
   },
   
+  {
+    path: 'view-customers',
+    component: ViewCustomersComponent,
+    title: 'View Customers',
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: ['ROLE_ADMIN', 'ROLE_MASTER'] }
+  },
   {
     path: '**',
     component: ErrorPageComponent,
