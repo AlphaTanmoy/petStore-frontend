@@ -4,17 +4,26 @@ import { FormsModule } from '@angular/forms';
 import { NavbarControlService } from '../../../../services/navbar.control.service';
 import { PopupService } from '../../../../services/popup.service';
 import { debounceTime, distinctUntilChanged, Subject, finalize } from 'rxjs';
-import { NavbarItemResponse, PaginationResponse, NavbarListRequest } from '../../../../interfaces/navbar.interface';
+import { 
+  NavbarItemResponse, 
+  PaginationResponse, 
+  NavbarListRequest, 
+  IsParentMenuResponse, 
+  ApiResponse 
+} from '../../../../interfaces/navbar.interface';
 import { PopupType } from '../../../../constants/enums/popup-types';
 import { UserTypes } from '../../../../constants/enums/user-types';
 import { SingleSelectComponent } from '../../../../page-components/single-select/single-select.component';
 import { MultiSelectComponent } from '../../../../page-components/multi-select/multi-select.component';
 import { HOSTER_URL } from '../../../../constants/constrants';
 
-interface NavbarItem extends NavbarItemResponse {
+interface NavbarItem extends Omit<NavbarItemResponse, 'menuLink'> {
   roles: string[];
-  parentId: string | null;
-  displayOrder: number;
+  parentId?: string | null;
+  displayOrder?: number;
+  menuDescription?: string;
+  menuUrl?: string;
+  menuLink?: string | null;
 }
 
 @Component({
@@ -208,16 +217,15 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   onMenuTypeChange(selectedType: string | null): void {
     this.selectedMenuType = selectedType;
-    this.onFilterChange();
+    this.applyFilters();
   }
 
   /**
    * Handles role selection changes
    */
   onRolesChange(roles: string[]): void {
-    console.log('Selected roles changed:', roles);
     this.selectedRoles = roles || [];
-    this.onFilterChange();
+    this.applyFilters();
   }
 
   /**
@@ -239,29 +247,30 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     if (item.canDoctorAccess) roles.push('ROLE_DOCTOR');
     if (item.canSellerAccess) roles.push('ROLE_SELLER');
     if (item.canRiderAccess) roles.push('ROLE_RIDER');
-    if (item.customerCareAccess) roles.push('ROLE_CUSTOMER_CARE');
-    if (item.isVisibleToGuest) roles.push('ROLE_GUEST');
 
     return {
       ...item,
       roles,
-      parentId: item.isASubMenu ? 'Parent ID' : null,
-      displayOrder: 0
-    };
+      parentId: 'parentId' in item ? (item as any).parentId : null,
+      displayOrder: 'displayOrder' in item ? (item as any).displayOrder : 0,
+      menuUrl: item.menuLink,
+      menuDescription: ''
+    } as NavbarItem;
   }
 
   /**
    * Applies filters to the navbar items
    */
   private applyFilters(): void {
-    // Filter by search text
     let filtered = [...this.navbarItems];
-    
+
+    // Filter by search text
     if (this.searchText) {
       const searchLower = this.searchText.toLowerCase();
       filtered = filtered.filter(item => 
         item.menuName?.toLowerCase().includes(searchLower) ||
-        item.menuLink?.toLowerCase().includes(searchLower)
+        item.menuDescription?.toLowerCase().includes(searchLower) ||
+        item.menuUrl?.toLowerCase().includes(searchLower)
       );
     }
     
@@ -303,7 +312,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Handles filter changes by resetting pagination and fetching new data
    */
-  onFilterChange(): void {
+  private onFilterChange(): void {
     this.offsetToken = null;
     this.isInitialLoad = true;
     this.hasMoreData = true;
@@ -315,7 +324,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Formats a date string to a localized date string
    */
-  formatDate(dateString: string): string {
+  formatDate(dateString: string | Date | null | undefined): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
@@ -351,15 +360,14 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Extracts and formats the roles that have access to the menu item
    */
-  getRoles(item: NavbarItem): string[] {
+  getRolesForItem(item: NavbarItem): string[] {
     const roles: string[] = [];
-    
     if (item.canMasterAccess) roles.push('MASTER');
     if (item.canAdminAccess) roles.push('ADMIN');
-    if (item.canUserAccess) roles.push('CUSTOMER');
+    if (item.canUserAccess) roles.push('USER');
     if (item.canDoctorAccess) roles.push('DOCTOR');
     if (item.canSellerAccess) roles.push('SELLER');
-    if (item.canRiderAccess) roles.push('RAIDER');
+    if (item.canRiderAccess) roles.push('RIDER');
     if (item.customerCareAccess) roles.push('CUSTOMER_CARE');
     if (item.isVisibleToGuest) roles.push('GUEST');
     
@@ -367,18 +375,110 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Handles editing a navbar item
+   * Handles delete button click for a navbar item
+   * @param item The navbar item to delete
    */
-  editItem(item: NavbarItem): void {
-    // TODO: Implement edit functionality
-    console.log('Edit item:', item);
+  deleteItem(item: NavbarItem): void {
+    // First check if it's a parent menu
+    this.navbarService.isParentMenu(item.id).subscribe({
+      next: (response: ApiResponse<IsParentMenuResponse>) => {
+        if (response.data?.parentMenu) {
+          // If it's a parent menu, show confirmation with submenu count
+          this.popupService.showPopup(
+            PopupType.WARNING,
+            'Confirm Deletion',
+            `This is a parent menu with ${response.data.subMenuEffectiveCount} submenu(s). Deleting it will also remove all its submenus.`,
+            () => {
+              this.popupService.hidePopup();
+              this.confirmDelete(item.id);
+            },
+            () => this.popupService.hidePopup(),
+            'Cancel',
+            'Delete'
+          );
+        } else {
+          // If not a parent menu, show standard confirmation
+          this.confirmDelete(item.id);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error checking parent menu status:', error);
+        this.popupService.showPopup(
+          PopupType.ERROR,
+          'Error',
+          'Failed to check menu status. Please try again.',
+          undefined,
+          undefined,
+          'OK'
+        );
+      }
+    });
   }
 
   /**
-   * Handles deleting a navbar item
+   * Confirms and executes the deletion of a navbar item
+   * @param id The ID of the navbar item to delete
    */
-  deleteItem(item: NavbarItem): void {
-    // TODO: Implement delete functionality
-    console.log('Delete item:', item);
+  private confirmDelete(id: string): void {
+    this.popupService.showPopup(
+      PopupType.WARNING,
+      'Confirm Deletion',
+      'Are you sure you want to delete this menu item?',
+      () => {
+        // User confirmed deletion
+        this.isLoading = true;
+        this.navbarService.deleteNavbar(id).subscribe({
+          next: (response: ApiResponse<string>) => {
+            this.popupService.showPopup(
+              PopupType.SUCCESS,
+              'Success',
+              response.message || 'Menu item deleted successfully',
+              () => {
+                // Remove the deleted item from the local arrays
+                this.navbarItems = this.navbarItems.filter(item => item.id !== id);
+                this.filteredNavbarItems = this.filteredNavbarItems.filter(item => item.id !== id);
+                this.popupService.hidePopup();
+              },
+              undefined,
+              'OK'
+            );
+          },
+          error: (error: any) => {
+            console.error('Error deleting navbar item:', error);
+            this.popupService.showPopup(
+              PopupType.ERROR,
+              'Deletion Failed',
+              error.error?.message || 'Failed to delete menu item. Please try again.',
+              undefined,
+              undefined,
+              'OK'
+            );
+          },
+          complete: () => {
+            this.isLoading = false;
+          }
+        });
+      },
+      undefined, // onCancel
+      'Delete',
+      'Cancel'
+    );
+  }
+
+  /**
+   * Handles the edit button click for a navbar item
+   * @param item The navbar item to edit
+   */
+  onEditItem(item: NavbarItem): void {
+    // TODO: Implement edit functionality
+    console.log('Edit item:', item);
+    this.popupService.showPopup(
+      PopupType.INFO,
+      'Edit Menu Item',
+      'Edit functionality will be implemented here.',
+      undefined,
+      undefined,
+      'OK'
+    );
   }
 }

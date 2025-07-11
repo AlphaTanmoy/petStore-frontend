@@ -118,9 +118,10 @@ export class NavbarControlService {
     deleteNavbar(id: string): Observable<ApiResponse<string>> {
         return this.http.post<ApiResponse<string>>(
             NAVBAR_LIST_DELETE,
-            `"${id}"`, // Send as JSON string
+            { id }, // Send as JSON object in request body
             {
-                params: { id } // Also send as query parameter if needed by the API
+                headers: { 'Content-Type': 'application/json' },
+                params: { id } // Keep as query parameter if needed for backward compatibility
             }
         );
     }
@@ -134,9 +135,9 @@ export class NavbarControlService {
     isParentMenu(id: string): Observable<ApiResponse<IsParentMenuResponse>> {
         return this.http.post<ApiResponse<IsParentMenuResponse>>(
             IS_PARENT_MENU,
-            `"${id}"`, // Send as JSON string
+            { id }, // Send as JSON object in request body
             {
-                params: { id } // Also send as query parameter if needed by the API
+                headers: { 'Content-Type': 'application/json' }
             }
         );
     }

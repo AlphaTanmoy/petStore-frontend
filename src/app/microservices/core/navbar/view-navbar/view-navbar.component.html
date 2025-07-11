@@ -130,7 +130,7 @@
                 <!-- Roles -->
                 <td>
                   <div class="d-flex flex-wrap gap-1">
-                    @for (role of getRoles(item); track role) {
+                    @for (role of getRolesForItem(item); track role) {
                       <span class="badge" 
                             [ngClass]="{
                               'bg-primary': role === 'MASTER',
@@ -156,7 +156,7 @@
                   <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-outline-primary" 
                             [disabled]="isLoading"
-                            (click)="editItem(item)"
+                            (click)="onEditItem(item)"
                             title="Edit">
                       <i class="bi bi-pencil"></i>
                     </button>

@@ -91,4 +91,6 @@ export interface EditNavbarRequest {
 export interface IsParentMenuResponse {
   isParent: boolean;
   hasChildren: boolean;
+  parentMenu: boolean;
+  subMenuEffectiveCount: number;
 }
