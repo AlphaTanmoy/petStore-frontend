@@ -9,6 +9,7 @@ import { PopupType } from '../../../../constants/enums/popup-types';
 import { UserTypes } from '../../../../constants/enums/user-types';
 import { SingleSelectComponent } from '../../../../page-components/single-select/single-select.component';
 import { MultiSelectComponent } from '../../../../page-components/multi-select/multi-select.component';
+import { HOSTER_URL } from '../../../../constants/constrants';
 
 interface NavbarItem extends NavbarItemResponse {
   roles: string[];
@@ -95,7 +96,17 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.checkInitialLoad(), 100);
   }
 
-  private fetchNavbarItems() {
+  /**
+   * Clean up resources when the component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
+  }
+
+  /**
+   * Fetches navbar items from the server with current filters
+   */
+  private fetchNavbarItems(): void {
     if (this.isLoading || !this.hasMoreData) return;
     
     this.isLoading = true;
@@ -152,8 +163,11 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Handles window scroll event for infinite scrolling
+   */
   @HostListener('window:scroll')
-  onScroll() {
+  onScroll(): void {
     const viewportHeight = window.innerHeight;
     const scrollPosition = window.scrollY;
     const contentHeight = document.documentElement.scrollHeight;
@@ -172,7 +186,9 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Check if we need to load more on initial render
+  /**
+   * Checks if more content needs to be loaded on initial render
+   */
   private checkInitialLoad(): void {
     const viewportHeight = window.innerHeight;
     const contentHeight = document.documentElement.scrollHeight;
@@ -183,36 +199,41 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles search text changes with debouncing
+   */
   onSearchChange(): void {
     this.searchSubject.next(this.searchText);
   }
 
-  // Get the current menu type value for API calls
-  private get currentMenuTypeValue(): string {
-    return this.selectedMenuType ? this.menuTypeMap[this.selectedMenuType] : 'all';
-  }
-
-  onMenuTypeChange(selectedType: string | null) {
+  /**
+   * Handles menu type selection changes
+   */
+  onMenuTypeChange(selectedType: string | null): void {
     this.selectedMenuType = selectedType;
     this.onFilterChange();
   }
 
-  onRolesChange(roles: string[]) {
+  /**
+   * Handles role selection changes
+   */
+  onRolesChange(roles: string[]): void {
     console.log('Selected roles changed:', roles);
     this.selectedRoles = roles || [];
-    this.pageIndex = 0; // Reset to first page when filters change
-    this.offsetToken = null; // Reset pagination
-    this.hasMoreData = true; // Reset hasMoreData flag
-    this.navbarItems = []; // Clear existing items
-    this.filteredNavbarItems = []; // Clear filtered items
-    this.fetchNavbarItems(); // Fetch with new filters
+    this.onFilterChange();
   }
 
-  loadMore() {
+  /**
+   * Loads more items when scrolling
+   */
+  loadMore(): void {
     if (this.isLoading || !this.hasMoreData) return;
     this.fetchNavbarItems();
   }
 
+  /**
+   * Maps a NavbarItemResponse to a NavbarItem with roles array
+   */
   private mapToNavbarItem(item: NavbarItemResponse): NavbarItem {
     const roles: string[] = [];
     if (item.canMasterAccess) roles.push('ROLE_MASTER');
@@ -232,7 +253,10 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
-  private applyFilters() {
+  /**
+   * Applies filters to the navbar items
+   */
+  private applyFilters(): void {
     // Filter by search text
     let filtered = [...this.navbarItems];
     
@@ -268,11 +292,10 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.filteredNavbarItems = filtered;
   }
 
-  trackById(index: number, item: NavbarItem): string {
-    return item.id;
-  }
-
-  onFilterChange() {
+  /**
+   * Handles filter changes by resetting pagination and fetching new data
+   */
+  onFilterChange(): void {
     this.offsetToken = null;
     this.isInitialLoad = true;
     this.hasMoreData = true;
@@ -281,6 +304,18 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchNavbarItems();
   }
 
+  /**
+   * Formats a date string to a localized date string
+   */
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+  }
+
+  /**
+   * Gets a comma-separated list of access levels for a navbar item
+   */
   getAccessLevels(item: NavbarItemResponse): string {
     const accessLevels = [];
     if (item.canMasterAccess) accessLevels.push('Master');
@@ -295,13 +330,47 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     return accessLevels.join(', ') || 'None';
   }
 
-  formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  /**
+   * Constructs a full URL by combining the base URL with the provided path
+   */
+  getFullUrl(path: string): string {
+    if (!path) return '';
+    // Remove leading slash if present to avoid double slashes
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${HOSTER_URL}/${cleanPath}`;
   }
 
-  ngOnDestroy() {
-    // Clean up the search subject
-    this.searchSubject.complete();
+  /**
+   * Extracts and formats the roles that have access to the menu item
+   */
+  getRoles(item: NavbarItem): string[] {
+    const roles: string[] = [];
+    
+    if (item.canMasterAccess) roles.push('MASTER');
+    if (item.canAdminAccess) roles.push('ADMIN');
+    if (item.canUserAccess) roles.push('CUSTOMER');
+    if (item.canDoctorAccess) roles.push('DOCTOR');
+    if (item.canSellerAccess) roles.push('SELLER');
+    if (item.canRiderAccess) roles.push('RAIDER');
+    if (item.customerCareAccess) roles.push('CUSTOMER_CARE');
+    if (item.isVisibleToGuest) roles.push('GUEST');
+    
+    return roles.length > 0 ? roles : ['NONE'];
+  }
+
+  /**
+   * Handles editing a navbar item
+   */
+  editItem(item: NavbarItem): void {
+    // TODO: Implement edit functionality
+    console.log('Edit item:', item);
+  }
+
+  /**
+   * Handles deleting a navbar item
+   */
+  deleteItem(item: NavbarItem): void {
+    // TODO: Implement delete functionality
+    console.log('Delete item:', item);
   }
 }

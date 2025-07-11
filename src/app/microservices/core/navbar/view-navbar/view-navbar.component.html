@@ -83,11 +83,11 @@
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th class="ps-3 small text-uppercase text-muted fw-bold">Title</th>
+            <th class="small text-uppercase text-muted fw-bold">Icon</th>
+            <th class="ps-3 small text-uppercase text-muted fw-bold">Menu Name</th>
             <th class="small text-uppercase text-muted fw-bold">URL</th>
-            <th class="small text-uppercase text-muted fw-bold">Order</th>
-            <th class="small text-uppercase text-muted fw-bold">Parent</th>
             <th class="small text-uppercase text-muted fw-bold">Roles</th>
+            <th class="small text-uppercase text-muted fw-bold">Created Date</th>
             <th class="small text-uppercase text-muted fw-bold">Actions</th>
           </tr>
         </thead>
@@ -95,26 +95,78 @@
           @if (filteredNavbarItems.length > 0) {
             @for (item of filteredNavbarItems; track item.id) {
               <tr class="cursor-pointer">
-                <td class="ps-3 fw-medium">{{ item.menuName || 'N/A' }}</td>
-                <td>{{ item.menuLink || 'N/A' }}</td>
-                <td>{{ item.displayOrder || 'N/A' }}</td>
-                <td>{{ item.parentId ? item.parentId : '-' }}</td>
+                <!-- Icon Column -->
+                <td class="text-center">
+                  <div class="d-flex justify-content-center">
+                    @if (item.svgFileDataLink) {
+                      <img [src]="item.svgFileDataLink" [alt]="item.menuName + ' icon'" class="menu-icon" style="width: 24px; height: 24px;">
+                    } @else {
+                      <i class="bi bi-question-circle text-muted"></i>
+                    }
+                  </div>
+                </td>
+                
+                <!-- Menu Name -->
+                <td class="ps-3 fw-medium">
+                  {{ item.menuName || 'N/A' }}
+                </td>
+                
+                <!-- URL -->
                 <td>
-                  @for (role of item.roles; track role) {
-                    <span class="badge me-1 mb-1" 
-                          [ngClass]="role === 'ROLE_MASTER' ? 'bg-primary' : 'bg-secondary'"
-                          [title]="role">
-                      {{ role }}
+                  @if (item.menuLink) {
+                    <a [href]="getFullUrl(item.menuLink)" 
+                       target="_blank" 
+                       class="text-primary text-decoration-none"
+                       [title]="getFullUrl(item.menuLink)">
+                      {{ getFullUrl(item.menuLink) }}
+                    </a>
+                  } @else {
+                    <span class="text-muted">
+                      <i class="bi bi-x-circle"></i> No URL
                     </span>
                   }
                 </td>
+                
+                <!-- Roles -->
                 <td>
-                  <button class="btn btn-sm btn-outline-primary me-1" [disabled]="isLoading">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" [disabled]="isLoading">
-                    <i class="bi bi-trash"></i>
-                  </button>
+                  <div class="d-flex flex-wrap gap-1">
+                    @for (role of getRoles(item); track role) {
+                      <span class="badge" 
+                            [ngClass]="{
+                              'bg-primary': role === 'MASTER',
+                              'bg-success': role === 'ADMIN',
+                              'bg-info': role === 'CUSTOMER',
+                              'bg-warning': role === 'SELLER',
+                              'bg-secondary': role === 'GUEST',
+                              'bg-danger': role === 'RAIDER',
+                              'bg-dark': role === 'CUSTOMER_CARE' || role === 'DOCTOR'
+                            }"
+                            [title]="role">
+                        {{ role }}
+                      </span>
+                    }
+                  </div>
+                </td>
+                
+                <!-- Created Date -->
+                <td>{{ formatDate(item.createdDate) }}</td>
+                
+                <!-- Actions -->
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" 
+                            [disabled]="isLoading"
+                            (click)="editItem(item)"
+                            title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            [disabled]="isLoading"
+                            (click)="deleteItem(item)"
+                            title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             }
