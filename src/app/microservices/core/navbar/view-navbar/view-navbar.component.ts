@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, HostListener, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LoaderComponent } from '../../../../page-components/loader/loader.component';
 import { NavbarControlService } from '../../../../services/navbar.control.service';
 import { PopupService } from '../../../../services/popup.service';
 import { debounceTime, distinctUntilChanged, Subject, finalize } from 'rxjs';
@@ -24,6 +25,9 @@ interface NavbarItem extends Omit<NavbarItemResponse, 'menuLink'> {
   menuDescription?: string;
   menuUrl?: string;
   menuLink?: string | null;
+  dataStatus?: string;
+  updatedAt?: string;
+  createdDate: string;
 }
 
 @Component({
@@ -33,7 +37,8 @@ interface NavbarItem extends Omit<NavbarItemResponse, 'menuLink'> {
     CommonModule, 
     FormsModule,
     SingleSelectComponent,
-    MultiSelectComponent
+    MultiSelectComponent,
+    LoaderComponent
   ],
   templateUrl: './view-navbar.component.html'
 })
@@ -49,6 +54,9 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   
   // Show inactive items toggle
   showInActive: boolean = false;
+  
+  // Loader state
+  isPageLoading: boolean = true;
   
   @ViewChild('menuTypeSelect') menuTypeSelect!: SingleSelectComponent;
   @ViewChild('rolesSelect') rolesSelect!: MultiSelectComponent;
@@ -100,6 +108,14 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadNavbarItems();
+  }
+  
+  /**
+   * Load navbar items with loading state
+   */
+  private loadNavbarItems(): void {
+    this.isPageLoading = true;
     this.fetchNavbarItems();
   }
 
@@ -143,6 +159,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.navbarService.getNavbarItems(params).pipe(
       finalize(() => {
         this.isLoading = false;
+        this.isPageLoading = false;
         this.isInitialLoad = false;
       })
     ).subscribe({
@@ -258,7 +275,10 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
       parentId: 'parentId' in item ? (item as any).parentId : null,
       displayOrder: 'displayOrder' in item ? (item as any).displayOrder : 0,
       menuUrl: item.menuLink,
-      menuDescription: ''
+      menuDescription: '',
+      dataStatus: (item as any).dataStatus || 'ACTIVE', // Default to ACTIVE if not provided
+      updatedAt: (item as any).updatedAt || item.createdDate, // Fallback to createdDate if updatedAt not available
+      createdDate: item.createdDate
     } as NavbarItem;
   }
 
@@ -485,19 +505,23 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
     
     this.navbarService.deleteNavbar(id).subscribe({
-      next: (response: ApiResponse<string>) => {
+      next: (response: ApiResponse<any>) => {
         console.log('=== Delete API SUCCESS:', response);
         
-        // Remove the deleted item from the local arrays
-        this.navbarItems = this.navbarItems.filter(item => item.id !== id);
-        this.filteredNavbarItems = this.filteredNavbarItems.filter(item => item.id !== id);
+        // Show success popup with data status if available
+        const statusMessage = response.data?.dataStatus 
+          ? `${response.message} (Status: ${response.data.dataStatus})` 
+          : response.message;
         
-        // Show success popup
         this.popupService.showPopup(
           PopupType.SUCCESS,
           'Success',
-          response.message || 'Menu item deleted successfully',
-          () => this.popupService.hidePopup(),
+          statusMessage || 'Menu item deleted successfully',
+          () => {
+            this.popupService.hidePopup();
+            // Reload the data after successful deletion
+            this.reloadData();
+          },
           undefined,
           'OK'
         );
@@ -518,6 +542,19 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isLoading = false;
       }
     });
+  }
+  
+  /**
+   * Reloads the navbar items data
+   */
+  private reloadData(): void {
+    this.isPageLoading = true;
+    this.pageIndex = 0;
+    this.offsetToken = null;
+    this.navbarItems = [];
+    this.filteredNavbarItems = [];
+    this.hasMoreData = true;
+    this.fetchNavbarItems();
   }
 
   onEditItem(item: NavbarItem): void {

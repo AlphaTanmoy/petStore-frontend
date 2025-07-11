@@ -1,23 +1,22 @@
 <div class="container-fluid py-3">
-  <!-- Loading Overlay -->
-  @if (isLoading && isInitialLoad) {
-    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75" style="z-index: 1050;">
-      <div class="text-center">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2">Loading navigation items...</p>
-      </div>
-    </div>
-  }
+  <!-- Page Loader -->
+  <app-loader 
+    *ngIf="isPageLoading"
+    [showMessage]="true"
+    message="Loading navigation items..."
+    color="#0d6efd"
+    size="large">
+  </app-loader>
 
   <!-- Loading more indicator -->
-  @if (isLoading && !isInitialLoad) {
+  @if (isLoading && !isPageLoading) {
     <div class="text-center py-3 border-top">
-      <div class="spinner-border spinner-border-sm text-primary" role="status">
-        <span class="visually-hidden">Loading more...</span>
-      </div>
-      <span class="ms-2 small text-muted">Loading more items...</span>
+      <app-loader 
+        [showMessage]="true"
+        message="Loading more items..."
+        color="#0d6efd"
+        size="small">
+      </app-loader>
     </div>
   }
 
@@ -102,7 +101,8 @@
             <th class="ps-3 small text-uppercase text-muted fw-bold">Menu Name</th>
             <th class="small text-uppercase text-muted fw-bold">URL</th>
             <th class="small text-uppercase text-muted fw-bold">Roles</th>
-            <th class="small text-uppercase text-muted fw-bold">Created Date</th>
+            <th class="small text-uppercase text-muted fw-bold">Status</th>
+            <th class="small text-uppercase text-muted fw-bold">Last Updated</th>
             <th class="small text-uppercase text-muted fw-bold">Actions</th>
           </tr>
         </thead>
@@ -163,8 +163,15 @@
                   </div>
                 </td>
                 
-                <!-- Created Date -->
-                <td>{{ formatDate(item.createdDate) }}</td>
+                <!-- Status -->
+                <td>
+                  <span class="badge" [ngClass]="item.dataStatus === 'ACTIVE' ? 'bg-success' : 'bg-secondary'">
+                    {{ item.dataStatus || 'N/A' }}
+                  </span>
+                </td>
+                
+                <!-- Last Updated -->
+                <td>{{ formatDate(item.updatedAt) }}</td>
                 
                 <!-- Actions -->
                 <td>
@@ -187,7 +194,7 @@
             }
           } @else {
             <tr>
-              <td colspan="6" class="text-center py-4">
+              <td colspan="7" class="text-center py-4">
                 @if (isLoading) {
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
