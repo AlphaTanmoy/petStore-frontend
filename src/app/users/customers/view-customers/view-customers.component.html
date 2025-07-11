@@ -9,7 +9,7 @@
         <div class="col-md-4">
           <label class="form-label small fw-bold text-muted mb-1">ROLE</label>
           <app-single-select 
-            [options]="['All Roles', 'ROLE_CUSTOMER', 'ROLE_MASTER']"
+            [options]="roles"
             [selectedOption]="filterRole || 'All Roles'"
             (selectionChange)="onRoleChange($event)"
             placeholder="Select role"

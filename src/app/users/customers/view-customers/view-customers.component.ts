@@ -46,6 +46,7 @@ export class ViewCustomersComponent implements OnInit, AfterViewInit {
   filterRole = '';
   searchText = '';
   isPrime = false;
+  roles: string[] = [];
 
   // Handle search input changes with debounce
   private searchSubject = new Subject<string>();
@@ -64,7 +65,12 @@ export class ViewCustomersComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.initializeRoles();
     this.fetchCustomers();
+  }
+
+  private initializeRoles(): void {
+    this.roles = ['All Roles', 'ROLE_CUSTOMER', 'ROLE_MASTER'];
   }
 
   fetchCustomers(): void {
