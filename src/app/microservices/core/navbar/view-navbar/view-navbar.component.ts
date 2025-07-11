@@ -127,13 +127,10 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
       listOfRolesCanAccess: validRoles && validRoles.length > 0 ? validRoles : undefined
     };
     
-    console.log('Fetching navbar items with params:', params);
-    
     this.navbarService.getNavbarItems(params).pipe(
       finalize(() => {
         this.isLoading = false;
         this.isInitialLoad = false;
-        console.log('Finished loading navbar items');
       })
     ).subscribe({
       next: (response: PaginationResponse<NavbarItemResponse>) => {
@@ -281,10 +278,21 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     // Filter by roles if any selected
     if (this.selectedRoles.length > 0) {
       filtered = filtered.filter(item => {
-        // Check if item has any of the selected roles
         return this.selectedRoles.some(role => {
-          const roleKey = role.replace('ROLE_', '').toLowerCase();
-          return (item as any)[`can${roleKey.charAt(0).toUpperCase() + roleKey.slice(1)}Access`] === true;
+          // Map the role to the corresponding property in the item
+          const roleMap: {[key: string]: keyof NavbarItem} = {
+            'ROLE_MASTER': 'canMasterAccess',
+            'ROLE_ADMIN': 'canAdminAccess',
+            'ROLE_CUSTOMER': 'canUserAccess',
+            'ROLE_DOCTOR': 'canDoctorAccess',
+            'ROLE_SELLER': 'canSellerAccess',
+            'ROLE_RAIDER': 'canRiderAccess',
+            'ROLE_CUSTOMER_CARE': 'customerCareAccess',
+            'ROLE_GUEST': 'isVisibleToGuest'
+          };
+          
+          const roleProperty = roleMap[role];
+          return roleProperty ? item[roleProperty] === true : false;
         });
       });
     }
