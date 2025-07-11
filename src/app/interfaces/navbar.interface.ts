@@ -30,6 +30,13 @@ export interface NavbarItemResponse {
   svgFileDataLink: string;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status: boolean;
+  statusCode: number;
+}
+
 export interface NavbarListRequest {
   queryString?: string;
   giveCount?: boolean;
@@ -44,4 +51,44 @@ export interface NavbarListRequest {
   applyParentSubMenuFilter?: boolean;
   showSubMenusOnly?: boolean;
   listOfRolesCanAccess?: string[];
+  isVisibleToGuest?: boolean;
+}
+
+export interface AddNavbarRequest {
+  menuName: string;
+  canMasterAccess: boolean;
+  doHaveRedirectionLink: boolean;
+  menuLink: string | null;
+  isASubMenu: boolean;
+  parentId: string | null;
+  canAdminAccess: boolean;
+  canUserAccess: boolean;
+  canDoctorAccess: boolean;
+  canSellerAccess: boolean;
+  canRiderAccess: boolean;
+  canCustomerCareAccess: boolean;
+  isVisibleToGuest: boolean;
+  isAvailableWhileLoggedOut: boolean;
+  svgFileDataLink: string | null;
+}
+
+export interface EditNavbarRequest {
+  id: string;
+  menuName?: string;
+  doHaveRedirectionLink?: boolean;
+  menuLink?: string | null;
+  canAdminAccess?: boolean;
+  canUserAccess?: boolean;
+  canDoctorAccess?: boolean;
+  canSellerAccess?: boolean;
+  canRiderAccess?: boolean;
+  canCustomerCareAccess?: boolean;
+  isVisibleToGuest?: boolean;
+  isAvailableWhileLoggedOut?: boolean;
+  svgFileDataLink?: string | null;
+}
+
+export interface IsParentMenuResponse {
+  isParent: boolean;
+  hasChildren: boolean;
 }

@@ -48,4 +48,7 @@ export const NAVBAR_LIST_TO_DISPLAY = CORE_URL + '/navbar/getNavbarListToDisplay
 export const NAVBAR_LIST_ADD = CORE_URL + '/navbar/add';
 export const NAVBAR_LIST_EDIT = CORE_URL + '/navbar/edit';
 export const NAVBAR_LIST_DELETE = CORE_URL + '/navbar/delete';
+export const IS_PARENT_MENU = CORE_URL + '/navbar/isAParentMenu';
+
+// User Endpoints
 export const GET_ALL_CUSTOMERS = USER_URL + '/customer/getAll';
