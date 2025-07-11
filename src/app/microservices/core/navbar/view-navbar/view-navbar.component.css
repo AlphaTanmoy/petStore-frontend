@@ -1,0 +1,177 @@
+/* Multi-select dropdown styles */
+.position-relative {
+  position: relative;
+}
+
+/* Ensure the dropdown has a higher z-index than other elements */
+app-multi-select {
+  display: block;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Style the selected tags container */
+.selected-options {
+  max-height: 100px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc #f5f5f5;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: #fff;
+  min-height: 38px;
+}
+
+/* Style the scrollbar for WebKit browsers */
+.selected-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.selected-options::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.selected-options::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.selected-options {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: thin;  /* Firefox */
+}
+
+/* Style the dropdown menu */
+.dropdown-menu {
+  z-index: 1050; /* Ensure dropdown appears above other elements */
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+  min-width: 200px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  background-color: #fff;
+  margin-top: 2px;
+}
+
+/* Style the options in the dropdown */
+.option {
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.option:hover {
+  background-color: #f5f5f5;
+}
+
+.option.selected {
+  background-color: #e9ecef;
+  font-weight: 500;
+}
+
+/* Style the selected tags */
+.selected-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #e9ecef;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin: 2px;
+  font-size: 13px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid #dee2e6;
+}
+
+/* Style the remove button in selected tags */
+.remove-tag {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px 0 4px;
+  margin-left: 4px;
+  font-size: 14px;
+  line-height: 1;
+  color: #6c757d;
+}
+
+.remove-tag:hover {
+  color: #dc3545;
+}
+
+/* Style the clear all button */
+.clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+  line-height: 1;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-btn:hover {
+  color: #dc3545;
+}
+
+/* Style the dropdown icon */
+.dropdown-icon {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: #6c757d;
+}
+
+/* Style the search input */
+.search-container {
+  position: relative;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.search-input {
+  width: 100%;
+  padding: 6px 12px 6px 30px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  color: #6c757d;
+}
+
+/* Style for no results message */
+.no-results {
+  padding: 8px 16px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Style for max selection message */
+.max-selection-message {
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #dc3545;
+  border-top: 1px solid #eee;
+  background-color: #f8f9fa;
+}

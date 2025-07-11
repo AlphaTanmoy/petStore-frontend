@@ -2,17 +2,19 @@
   <div class="select-container" (click)="!disabled && toggleDropdown()" [class.disabled]="disabled">
     <div class="selected-options" [class.placeholder]="selectedOptions.length === 0">
       <ng-container *ngIf="selectedOptions.length > 0; else placeholderText">
-        <span class="selected-tag" *ngFor="let option of selectedOptions">
-          {{ option }}
-          <button 
-            type="button" 
-            class="remove-tag" 
-            (click)="$event.stopPropagation(); removeOption($event, option)"
-            title="Remove"
-          >
-            &times;
-          </button>
-        </span>
+        <ng-container *ngFor="let value of selectedOptions">
+          <span class="selected-tag">
+            {{ getOptionLabel(value) }}
+            <button 
+              type="button" 
+              class="remove-tag" 
+              (click)="$event.stopPropagation(); removeOption($event, value)"
+              title="Remove"
+            >
+              &times;
+            </button>
+          </span>
+        </ng-container>
       </ng-container>
       <ng-template #placeholderText>
         {{ placeholder }}
@@ -34,7 +36,7 @@
     </div>
   </div>
 
-  <div #dropdownMenu class="dropdown-menu" [class.show]="isOpen" [style.max-height]="maxHeight">
+  <div #dropdownMenu class="dropdown-menu" [class.show]="isOpen">
     <div class="search-container" *ngIf="options.length > 5">
       <input
         #searchInput
@@ -48,26 +50,22 @@
       <i class="bi bi-search search-icon"></i>
     </div>
 
-    <div class="options-container" *ngIf="filteredOptions.length > 0; else noResults">
-      <div 
-        *ngFor="let option of filteredOptions; trackBy: trackByFn"
-        class="option"
-        [class.selected]="isSelected(option)"
-        (click)="toggleOption(option)"
-      >
-        <span class="option-text">{{ option }}</span>
-        <i *ngIf="isSelected(option)" class="bi bi-check-lg selected-icon"></i>
+    <div class="options-container">
+      <div *ngFor="let option of filteredOptions; trackBy: trackByFn" 
+           class="option" 
+           [class.selected]="isSelected(option)" 
+           (click)="toggleOption(option)"
+           [title]="option.value">
+        <span class="selected-icon" *ngIf="isSelected(option)">✓</span>
+        {{ option.label }}
+      </div>
+      <div *ngIf="filteredOptions.length === 0" class="no-results">
+        No options found
       </div>
     </div>
 
     <div *ngIf="maxSelections && selectedOptions.length >= maxSelections" class="max-selection-message">
       Maximum {{ maxSelections }} selection{{ maxSelections > 1 ? 's' : '' }} allowed
     </div>
-
-    <ng-template #noResults>
-      <div class="no-results">
-        No results found
-      </div>
-    </ng-template>
   </div>
 </div>

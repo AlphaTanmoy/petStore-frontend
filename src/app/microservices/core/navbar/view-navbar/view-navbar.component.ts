@@ -1,10 +1,10 @@
-import { Component, OnInit, AfterViewInit, HostListener, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, HostListener, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarControlService } from '../../../../services/navbar.control.service';
 import { PopupService } from '../../../../services/popup.service';
 import { debounceTime, distinctUntilChanged, Subject, finalize } from 'rxjs';
-import { NavbarItemResponse, PaginationResponse } from '../../../../interfaces/navbar.interface';
+import { NavbarItemResponse, PaginationResponse, NavbarListRequest } from '../../../../interfaces/navbar.interface';
 import { PopupType } from '../../../../constants/enums/popup-types';
 import { UserTypes } from '../../../../constants/enums/user-types';
 import { SingleSelectComponent } from '../../../../page-components/single-select/single-select.component';
@@ -27,7 +27,12 @@ interface NavbarItem extends NavbarItemResponse {
   ],
   templateUrl: './view-navbar.component.html'
 })
-export class ViewNavbarComponent implements OnInit, AfterViewInit {
+export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
+  // Pagination
+  pageSize = 10;
+  pageIndex = 0;
+  totalItems = 0;
+  
   // Menu type options for single select
   menuTypeOptions = ['All Menu Items', 'Parent Menus Only', 'Sub Menus Only'];
   selectedMenuType: string | null = null;
@@ -35,8 +40,17 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit {
   @ViewChild('menuTypeSelect') menuTypeSelect!: SingleSelectComponent;
   @ViewChild('rolesSelect') rolesSelect!: MultiSelectComponent;
 
-  // Role options for multi-select
-  roleOptions: string[] = Object.values(UserTypes);
+  // Role options for multi-select with proper formatting
+  roleOptions: { value: string; label: string }[] = [
+    { value: 'ROLE_MASTER', label: 'Master' },
+    { value: 'ROLE_CUSTOMER', label: 'Customer' },
+    { value: 'ROLE_SELLER', label: 'Seller' },
+    { value: 'ROLE_ADMIN', label: 'Admin' },
+    { value: 'ROLE_DOCTOR', label: 'Doctor' },
+    { value: 'ROLE_CUSTOMER_CARE', label: 'Customer Care' },
+    { value: 'ROLE_RAIDER', label: 'Raider' },
+    { value: 'ROLE_GUEST', label: 'Guest' }
+  ];
   selectedRoles: string[] = [];
   
   // Map display names to API values for menu type
@@ -89,17 +103,26 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit {
     // Only pass offsetToken if we have one and it's not the initial load
     const offset = !this.isInitialLoad && this.offsetToken ? this.offsetToken : undefined;
     
-    const params = {
+    // Get valid roles from selected roles
+    const validRoles = this.selectedRoles.length > 0 
+      ? this.selectedRoles.filter(role => this.roleOptions.some(opt => opt.value === role))
+      : undefined;
+    
+    const params: NavbarListRequest = {
       queryString: this.searchText || undefined,
       limit: this.PAGE_SIZE,
       offsetToken: offset,
-      showSubMenusOnly: this.selectedMenuType === 'Sub Menus Only'
+      showSubMenusOnly: this.selectedMenuType === 'Sub Menus Only',
+      listOfRolesCanAccess: validRoles && validRoles.length > 0 ? validRoles : undefined
     };
+    
+    console.log('Fetching navbar items with params:', params);
     
     this.navbarService.getNavbarItems(params).pipe(
       finalize(() => {
         this.isLoading = false;
         this.isInitialLoad = false;
+        console.log('Finished loading navbar items');
       })
     ).subscribe({
       next: (response: PaginationResponse<NavbarItemResponse>) => {
@@ -174,9 +197,15 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit {
     this.onFilterChange();
   }
 
-  onRolesChange(selectedRoles: string[]) {
-    this.selectedRoles = selectedRoles || [];
-    this.onFilterChange();
+  onRolesChange(roles: string[]) {
+    console.log('Selected roles changed:', roles);
+    this.selectedRoles = roles || [];
+    this.pageIndex = 0; // Reset to first page when filters change
+    this.offsetToken = null; // Reset pagination
+    this.hasMoreData = true; // Reset hasMoreData flag
+    this.navbarItems = []; // Clear existing items
+    this.filteredNavbarItems = []; // Clear filtered items
+    this.fetchNavbarItems(); // Fetch with new filters
   }
 
   loadMore() {
@@ -269,5 +298,10 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit {
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
+  }
+
+  ngOnDestroy() {
+    // Clean up the search subject
+    this.searchSubject.complete();
   }
 }

@@ -43,13 +43,16 @@
         <!-- Roles Filter -->
         <div class="col-md-4">
           <label class="form-label small fw-bold text-muted mb-1">FILTER BY ROLE</label>
-          <app-multi-select 
-            #rolesSelect
-            [options]="roleOptions"
-            [selectedOptions]="selectedRoles"
-            (selectionChange)="onRolesChange($event)"
-            placeholder="Select roles">
-          </app-multi-select>
+          <div class="position-relative">
+            <app-multi-select 
+              #rolesSelect
+              [options]="roleOptions"
+              [selectedOptions]="selectedRoles"
+              (selectionChange)="onRolesChange($event)"
+              placeholder="Select roles"
+              [maxSelections]="10"
+            ></app-multi-select>
+          </div>
         </div>
 
         <!-- Search -->
@@ -98,9 +101,10 @@
                 <td>{{ item.parentId ? item.parentId : '-' }}</td>
                 <td>
                   @for (role of item.roles; track role) {
-                    <span class="badge me-1" 
-                          [ngClass]="role === 'ROLE_MASTER' ? 'bg-primary' : 'bg-secondary'">
-                      {{ role.replace('ROLE_', '') }}
+                    <span class="badge me-1 mb-1" 
+                          [ngClass]="role === 'ROLE_MASTER' ? 'bg-primary' : 'bg-secondary'"
+                          [title]="role">
+                      {{ role }}
                     </span>
                   }
                 </td>

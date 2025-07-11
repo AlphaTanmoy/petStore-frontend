@@ -1,6 +1,11 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-multi-select',
@@ -10,7 +15,7 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./multi-select.component.css']
 })
 export class MultiSelectComponent {
-  @Input() options: string[] = [];
+  @Input() options: SelectOption[] = [];
   @Input() placeholder: string = 'Select options';
   @Input() selectedOptions: string[] = [];
   @Input() maxHeight: string = '200px';
@@ -24,14 +29,16 @@ export class MultiSelectComponent {
 
   isOpen = false;
   searchQuery = '';
-  filteredOptions: string[] = [];
+  filteredOptions: SelectOption[] = [];
 
   ngOnInit() {
     this.filteredOptions = [...this.options];
   }
 
-  ngOnChanges() {
-    this.filteredOptions = this.filterOptions(this.searchQuery);
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['options'] || changes['searchQuery']) {
+      this.filteredOptions = this.filterOptions(this.searchQuery);
+    }
   }
 
   toggleDropdown() {
@@ -46,38 +53,47 @@ export class MultiSelectComponent {
     }
   }
 
-  toggleOption(option: string) {
-    const index = this.selectedOptions.indexOf(option);
+  toggleOption(option: SelectOption) {
+    const index = this.selectedOptions.indexOf(option.value);
     if (index === -1) {
-      // Check if max selections is reached
-      if (this.maxSelections && this.selectedOptions.length >= this.maxSelections) {
-        return;
+      if (this.maxSelections === null || this.selectedOptions.length < this.maxSelections) {
+        this.selectedOptions = [...this.selectedOptions, option.value];
+        this.emitChanges();
       }
-      this.selectedOptions = [...this.selectedOptions, option];
     } else {
-      this.selectedOptions = this.selectedOptions.filter(item => item !== option);
+      this.selectedOptions = this.selectedOptions.filter(item => item !== option.value);
+      this.emitChanges();
     }
-    
-    this.selectedOptionsChange.emit([...this.selectedOptions]);
-    this.selectionChange.emit([...this.selectedOptions]);
   }
 
-  isSelected(option: string): boolean {
-    return this.selectedOptions.includes(option);
+  isSelected(option: SelectOption): boolean {
+    return this.selectedOptions.includes(option.value);
   }
 
   clearAll(event: Event) {
     event.stopPropagation();
     this.selectedOptions = [];
-    this.selectedOptionsChange.emit([]);
-    this.selectionChange.emit([]);
+    this.emitChanges();
   }
 
   removeOption(event: Event, option: string) {
     event.stopPropagation();
     this.selectedOptions = this.selectedOptions.filter(item => item !== option);
+    this.emitChanges();
+  }
+
+  private emitChanges() {
     this.selectedOptionsChange.emit([...this.selectedOptions]);
     this.selectionChange.emit([...this.selectedOptions]);
+  }
+
+  getOptionLabel(value: string): string {
+    const option = this.options.find(opt => opt.value === value);
+    return option ? option.label : value;
+  }
+
+  trackByFn(index: number, item: SelectOption | string): string {
+    return typeof item === 'string' ? item : item.value;
   }
 
   onSearchChange(query: string) {
@@ -85,10 +101,14 @@ export class MultiSelectComponent {
     this.filteredOptions = this.filterOptions(query);
   }
 
-  private filterOptions(query: string): string[] {
-    if (!query) return [...this.options];
+  private filterOptions(query: string): SelectOption[] {
+    if (!query) {
+      return [...this.options];
+    }
+    const lowerCaseQuery = query.toLowerCase();
     return this.options.filter(option => 
-      option.toLowerCase().includes(query.toLowerCase())
+      option.label.toLowerCase().includes(lowerCaseQuery) || 
+      option.value.toLowerCase().includes(lowerCaseQuery)
     );
   }
 
@@ -97,10 +117,6 @@ export class MultiSelectComponent {
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.isOpen = false;
     }
-  }
-
-  trackByFn(index: number, item: string): string {
-    return item;
   }
 
   get selectedOptionsText(): string {
