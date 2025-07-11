@@ -11,6 +11,7 @@ import { AdminDashboardComponent } from './users/admins/admin-dashboard/admin-da
 import { AuthGuardService } from './services/auth-guard.service';
 import { UserTypes } from './constants/enums/user-types';
 import { ViewCustomersComponent } from './users/customers/view-customers/view-customers.component';
+import { ViewNavbarComponent } from './microservices/core/navbar/view-navbar/view-navbar.component';
 
 export const routes: Routes = [
   {
@@ -83,6 +84,15 @@ export const routes: Routes = [
     canActivate: [AuthGuardService],
     data: { allowedRoles: ['ROLE_ADMIN', 'ROLE_MASTER'] }
   },
+  
+  {
+    path: 'view-navbar',
+    component: ViewNavbarComponent,
+    title: 'View Navbar',
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: ['ROLE_MASTER'] }
+  },
+
   {
     path: '**',
     component: ErrorPageComponent,
