@@ -1,15 +1,29 @@
-<div class="modal-backdrop fade show" *ngIf="isVisible"></div>
+<!-- Backdrop with proper ARIA attributes -->
+<div class="modal-backdrop fade show" 
+     *ngIf="isVisible"
+     role="presentation"
+     aria-hidden="true">
+</div>
 
-<div class="modal fade show d-block" 
-     [ngClass]="{'d-block': isVisible}" 
-     tabindex="-1" 
+<!-- Modal with proper ARIA and focus management -->
+<div #modal
+     class="modal fade" 
+     [ngClass]="{'show d-block': isVisible}" 
      role="dialog"
+     tabindex="-1"
+     [attr.aria-modal]="isVisible"
      [attr.aria-hidden]="!isVisible"
-     [ngStyle]="{'display': isVisible ? 'block' : 'none'}">
+     [attr.aria-labelledby]="isVisible ? 'modalTitle' : null"
+     [attr.aria-describedby]="isVisible ? 'modalMessage' : null"
+     [ngStyle]="{'display': isVisible ? 'block' : 'none'}"
+     (keydown.escape)="onClose()"
+     (keydown)="onKeyDown($event)">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content" [ngClass]="getBorderClass()">
       <div class="modal-header">
-        <h5 class="modal-title d-flex align-items-center gap-2" [ngClass]="getTextColorClass()">
+        <h5 class="modal-title d-flex align-items-center gap-2" 
+            [ngClass]="getTextColorClass()"
+            id="modalTitle">
           <i class="bi" [ngClass]="getIconClass()"></i>
           {{ popupData.title }}
         </h5>
@@ -20,17 +34,20 @@
         </button>
       </div>
       <div class="modal-body">
-        <p class="mb-0">{{ popupData.message }}</p>
+        <p class="mb-0" id="modalMessage">{{ popupData.message }}</p>
       </div>
       <div class="modal-footer">
         <button *ngIf="popupData.showConfirmButton" 
+                #firstFocusable
                 type="button" 
                 class="btn me-2" 
                 [ngClass]="getButtonClass('confirm')" 
-                (click)="onConfirm()">
+                (click)="onConfirm()"
+                autofocus>
           {{ popupData.confirmButtonText || 'Confirm' }}
         </button>
         <button type="button" 
+                #lastFocusable
                 class="btn" 
                 [ngClass]="getButtonClass('close')" 
                 (click)="onClose()">

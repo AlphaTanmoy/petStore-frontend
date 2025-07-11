@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders, HttpParamsOptions } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import {
     PaginationResponse,
     NavbarItemResponse,
@@ -116,13 +117,62 @@ export class NavbarControlService {
      * @returns Observable with the API response
      */
     deleteNavbar(id: string): Observable<ApiResponse<string>> {
-        return this.http.post<ApiResponse<string>>(
+        console.log('=== deleteNavbar called with ID:', id);
+        
+        // Log the full URL with query params
+        const params = new HttpParams().set('id', id);
+        const urlWithParams = `${NAVBAR_LIST_DELETE}?${params.toString()}`;
+        console.log('=== Full URL:', urlWithParams);
+        
+        // Prepare request options
+        const options = {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json'
+            }),
+            params: new HttpParams().set('id', id)
+        };
+        
+        console.log('=== Request options:', {
+            url: NAVBAR_LIST_DELETE,
+            method: 'POST',
+            body: { id },
+            headers: options.headers.keys().reduce((acc, key) => ({
+                ...acc,
+                [key]: options.headers.getAll(key)
+            }), {}),
+            params: options.params.keys().reduce((acc, key) => ({
+                ...acc,
+                [key]: options.params.getAll(key)
+            }), {})
+        });
+        
+        // Create the observable but don't subscribe yet
+        const request$ = this.http.post<ApiResponse<string>>(
             NAVBAR_LIST_DELETE,
-            { id }, // Send as JSON object in request body
-            {
-                headers: { 'Content-Type': 'application/json' },
-                params: { id } // Keep as query parameter if needed for backward compatibility
-            }
+            { id },
+            options
+        );
+        
+        // Log when the request is actually made
+        console.log('=== Creating HTTP request observable');
+        
+        return request$.pipe(
+            tap({
+                subscribe: () => console.log('=== Request subscribed'),
+                next: (response: ApiResponse<string>) => {
+                    console.log('=== Delete API SUCCESS:', response);
+                },
+                error: (error: any) => {
+                    console.error('=== Delete API ERROR:', {
+                        status: error.status,
+                        statusText: error.statusText,
+                        error: error.error,
+                        message: error.message,
+                        url: error.url
+                    });
+                },
+                complete: () => console.log('=== Delete API completed')
+            })
         );
     }
 

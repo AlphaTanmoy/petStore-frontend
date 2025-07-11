@@ -47,6 +47,9 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   menuTypeOptions = ['All Menu Items', 'Parent Menus Only', 'Sub Menus Only'];
   selectedMenuType: string | null = null;
   
+  // Show inactive items toggle
+  showInActive: boolean = false;
+  
   @ViewChild('menuTypeSelect') menuTypeSelect!: SingleSelectComponent;
   @ViewChild('rolesSelect') rolesSelect!: MultiSelectComponent;
 
@@ -133,6 +136,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
       limit: this.PAGE_SIZE,
       offsetToken: offset,
       showSubMenusOnly: this.selectedMenuType === 'Sub Menus Only',
+      showInActive: this.showInActive,
       listOfRolesCanAccess: validRoles && validRoles.length > 0 ? validRoles : undefined
     };
     
@@ -312,12 +316,13 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Handles filter changes by resetting pagination and fetching new data
    */
-  private onFilterChange(): void {
+  public onFilterChange(): void {
+    this.pageIndex = 0;
     this.offsetToken = null;
-    this.isInitialLoad = true;
-    this.hasMoreData = true;
     this.navbarItems = [];
     this.filteredNavbarItems = [];
+    this.hasMoreData = true;
+    this.isInitialLoad = true;
     this.fetchNavbarItems();
   }
 
@@ -374,44 +379,76 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     return roles.length > 0 ? roles : ['NONE'];
   }
 
+
+
+
   /**
-   * Handles delete button click for a navbar item
+   * Handles the delete button click for a navbar item
    * @param item The navbar item to delete
    */
-  deleteItem(item: NavbarItem): void {
-    // First check if it's a parent menu
-    this.navbarService.isParentMenu(item.id).subscribe({
-      next: (response: ApiResponse<IsParentMenuResponse>) => {
-        if (response.data?.parentMenu) {
-          // If it's a parent menu, show confirmation with submenu count
-          this.popupService.showPopup(
-            PopupType.WARNING,
-            'Confirm Deletion',
-            `This is a parent menu with ${response.data.subMenuEffectiveCount} submenu(s). Deleting it will also remove all its submenus.`,
-            () => {
-              this.popupService.hidePopup();
-              this.confirmDelete(item.id);
-            },
-            () => this.popupService.hidePopup(),
-            'Cancel',
-            'Delete'
-          );
-        } else {
-          // If not a parent menu, show standard confirmation
-          this.confirmDelete(item.id);
-        }
-      },
-      error: (error: any) => {
-        console.error('Error checking parent menu status:', error);
-        this.popupService.showPopup(
-          PopupType.ERROR,
-          'Error',
-          'Failed to check menu status. Please try again.',
-          undefined,
-          undefined,
-          'OK'
-        );
+  onDeleteItem(item: NavbarItem): void {
+    console.log('=== onDeleteItem called for item:', item);
+    
+    if (!item || !item.id) {
+      console.error('Invalid item or item ID');
+      return;
+    }
+    
+    console.log('Checking if item is a parent menu...');
+    
+    // First check if this is a parent menu
+    const handleParentCheckResponse = (response: ApiResponse<IsParentMenuResponse>) => {
+      console.log('Parent check response:', response);
+      if (!response.data) {
+        throw new Error('Invalid response data');
       }
+      
+      if (response.data.parentMenu) {
+        // If it's a parent menu, show confirmation with submenu count
+        const message = `This is a parent menu with ${response.data.subMenuEffectiveCount} submenu(s). ` +
+                       'Deleting it will also remove all its submenus. Are you sure you want to continue?';
+        
+        console.log('Showing parent menu deletion warning');
+        this.popupService.showPopup(
+          PopupType.WARNING,
+          'Confirm Deletion',
+          message,
+          () => {
+            console.log('User confirmed parent menu deletion');
+            this.popupService.hidePopup();
+            // Directly execute delete without showing another confirmation
+            this.executeDelete(item.id);
+          },
+          () => {
+            console.log('User cancelled parent menu deletion');
+            this.popupService.hidePopup();
+          },
+          'Delete',
+          'Cancel'
+        );
+      } else {
+        // If not a parent menu, show standard confirmation
+        console.log('Item is not a parent menu, showing standard confirmation');
+        this.confirmDelete(item.id);
+      }
+    };
+    
+    const handleParentCheckError = (error: any) => {
+      console.error('Error checking parent menu status:', error);
+      this.popupService.showPopup(
+        PopupType.ERROR,
+        'Error',
+        'Failed to check menu status. Please try again.',
+        () => this.popupService.hidePopup(),
+        undefined,
+        'OK'
+      );
+    };
+    
+    // Make the API call to check if it's a parent menu
+    this.navbarService.isParentMenu(item.id).subscribe({
+      next: handleParentCheckResponse,
+      error: handleParentCheckError
     });
   }
 
@@ -420,55 +457,69 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
    * @param id The ID of the navbar item to delete
    */
   private confirmDelete(id: string): void {
+    console.log('=== confirmDelete called with ID:', id);
+    
+    // Show confirmation dialog using popup service
     this.popupService.showPopup(
       PopupType.WARNING,
       'Confirm Deletion',
       'Are you sure you want to delete this menu item?',
       () => {
-        // User confirmed deletion
-        this.isLoading = true;
-        this.navbarService.deleteNavbar(id).subscribe({
-          next: (response: ApiResponse<string>) => {
-            this.popupService.showPopup(
-              PopupType.SUCCESS,
-              'Success',
-              response.message || 'Menu item deleted successfully',
-              () => {
-                // Remove the deleted item from the local arrays
-                this.navbarItems = this.navbarItems.filter(item => item.id !== id);
-                this.filteredNavbarItems = this.filteredNavbarItems.filter(item => item.id !== id);
-                this.popupService.hidePopup();
-              },
-              undefined,
-              'OK'
-            );
-          },
-          error: (error: any) => {
-            console.error('Error deleting navbar item:', error);
-            this.popupService.showPopup(
-              PopupType.ERROR,
-              'Deletion Failed',
-              error.error?.message || 'Failed to delete menu item. Please try again.',
-              undefined,
-              undefined,
-              'OK'
-            );
-          },
-          complete: () => {
-            this.isLoading = false;
-          }
-        });
+        console.log('User confirmed deletion');
+        this.executeDelete(id);
       },
-      undefined, // onCancel
+      () => {
+        console.log('User cancelled deletion');
+        this.popupService.hidePopup();
+      },
       'Delete',
       'Cancel'
     );
   }
-
+  
   /**
-   * Handles the edit button click for a navbar item
-   * @param item The navbar item to edit
+   * Executes the delete operation after confirmation
    */
+  private executeDelete(id: string): void {
+    console.log('=== Executing delete for ID:', id);
+    this.isLoading = true;
+    
+    this.navbarService.deleteNavbar(id).subscribe({
+      next: (response: ApiResponse<string>) => {
+        console.log('=== Delete API SUCCESS:', response);
+        
+        // Remove the deleted item from the local arrays
+        this.navbarItems = this.navbarItems.filter(item => item.id !== id);
+        this.filteredNavbarItems = this.filteredNavbarItems.filter(item => item.id !== id);
+        
+        // Show success popup
+        this.popupService.showPopup(
+          PopupType.SUCCESS,
+          'Success',
+          response.message || 'Menu item deleted successfully',
+          () => this.popupService.hidePopup(),
+          undefined,
+          'OK'
+        );
+      },
+      error: (error: any) => {
+        console.error('=== Delete API ERROR:', error);
+        this.popupService.showPopup(
+          PopupType.ERROR,
+          'Deletion Failed',
+          error.error?.message || 'Failed to delete menu item. Please try again.',
+          () => this.popupService.hidePopup(),
+          undefined,
+          'OK'
+        );
+      },
+      complete: () => {
+        console.log('=== Delete API call completed');
+        this.isLoading = false;
+      }
+    });
+  }
+
   onEditItem(item: NavbarItem): void {
     // TODO: Implement edit functionality
     console.log('Edit item:', item);

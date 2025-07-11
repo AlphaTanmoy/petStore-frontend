@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PopupService, PopupState, PopupData } from '../../services/popup.service';
@@ -11,7 +11,12 @@ import { PopupType } from '../../constants/enums/popup-types';
   templateUrl: './pop-up.component.html',
   styleUrls: ['./pop-up.component.css']
 })
-export class PopupComponent implements OnInit, OnDestroy {
+export class PopupComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('modal') modalElement!: ElementRef;
+  @ViewChild('firstFocusable') firstFocusableElement!: ElementRef;
+  @ViewChild('lastFocusable') lastFocusableElement!: ElementRef;
+  
+  private lastFocusedElement: HTMLElement | null = null;
   isVisible = false;
   popupData: PopupData & { onConfirm?: () => void; showConfirmButton?: boolean } = {
     type: PopupType.INFO,
@@ -28,9 +33,25 @@ export class PopupComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscription = this.popupService.popupState$.subscribe((state: PopupState) => {
+      const wasVisible = this.isVisible;
       this.isVisible = state.isVisible;
       this.popupData = state.data;
+      
+      if (this.isVisible && !wasVisible) {
+        // Store the last focused element before showing the modal
+        this.lastFocusedElement = document.activeElement as HTMLElement;
+      } else if (!this.isVisible && wasVisible && this.lastFocusedElement) {
+        // Restore focus when modal is closed
+        this.lastFocusedElement.focus();
+      }
     });
+  }
+  
+  ngAfterViewChecked(): void {
+    if (this.isVisible && this.modalElement) {
+      // Focus the modal when it becomes visible
+      this.modalElement.nativeElement.focus();
+    }
   }
 
   ngOnDestroy(): void {
@@ -87,6 +108,23 @@ export class PopupComponent implements OnInit, OnDestroy {
     }
   }
 
+  onKeyDown(event: KeyboardEvent): void {
+    // Trap focus inside the modal
+    if (event.key === 'Tab') {
+      if (event.shiftKey) {
+        if (document.activeElement === this.firstFocusableElement?.nativeElement) {
+          event.preventDefault();
+          this.lastFocusableElement?.nativeElement.focus();
+        }
+      } else {
+        if (document.activeElement === this.lastFocusableElement?.nativeElement) {
+          event.preventDefault();
+          this.firstFocusableElement?.nativeElement.focus();
+        }
+      }
+    }
+  }
+  
   onClose(): void {
     // Call the onCancel callback if it exists
     if (this.popupData.onCancel) {
