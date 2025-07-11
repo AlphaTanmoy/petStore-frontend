@@ -5,7 +5,6 @@ import { CustomerViewService } from '../../../services/customer.view.service';
 import { PopupService } from '../../../services/popup.service';
 import { PopupType } from '../../../constants/enums/popup-types';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
-import { LoaderComponent } from '../../../page-components/loader/loader.component';
 import { SingleSelectComponent } from '../../../page-components/single-select/single-select.component';
 
 interface Customer {
@@ -30,7 +29,6 @@ interface ApiResponse {
   imports: [
     CommonModule,
     FormsModule,
-    LoaderComponent,
     SingleSelectComponent
   ],
   templateUrl: './view-customers.component.html',
