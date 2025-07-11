@@ -21,14 +21,16 @@
     </div>
     
     <!-- Navigation Items -->
-    <div class="flex-grow-1 overflow-auto py-3">
+    <div class="flex-grow-1 overflow-auto py-3" (click)="$event.stopPropagation()">
       <ul class="nav nav-pills flex-column mb-auto">
         <ng-container *ngFor="let item of navItems$ | async">
           <!-- Menu Item with Submenu -->
           <li class="nav-item" *ngIf="item.listOfSubMenu?.length">
             <a class="nav-link d-flex justify-content-between align-items-center text-white" 
-               (click)="toggleDropdown($event, item)"
-               [class.active]="isActive(item) || isChildActive(item)">
+               [routerLink]="item.menuLink"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: true}"
+               (click)="toggleDropdown($event, item)">
               <span class="d-flex align-items-center">
                 <span class="me-2">
                   <img *ngIf="item.icon" [src]="item.icon" [alt]="item.menuName + ' icon'" class="img-fluid" style="height: 1.25rem; filter: brightness(0) invert(1);" onerror="this.style.display='none'" />
@@ -39,11 +41,11 @@
             </a>
             
             <!-- Submenu -->
-            <ul class="nav flex-column ps-4" *ngIf="item.isExpanded">
+            <ul class="nav flex-column ps-3 mt-1" *ngIf="item.isExpanded" style="border-left: 1px solid rgba(255,255,255,0.1);">
               <li class="nav-item" *ngFor="let child of item.listOfSubMenu">
                 <a class="nav-link text-white-50" 
                    [routerLink]="child.menuLink" 
-                   routerLinkActive="active" 
+                   routerLinkActive="active"
                    [routerLinkActiveOptions]="{exact: true}"
                    (click)="onNavItemClick(); isMobileView && toggleSidebar()">
                   {{ child.menuName }}
@@ -56,7 +58,7 @@
           <li class="nav-item" *ngIf="!item.listOfSubMenu?.length">
             <a class="nav-link d-flex align-items-center text-white" 
                [routerLink]="item.menuLink" 
-               routerLinkActive="active" 
+               routerLinkActive="active"
                [routerLinkActiveOptions]="{exact: true}"
                (click)="isMobileView && toggleSidebar($event)">
               <span class="me-2">
@@ -67,23 +69,26 @@
           </li>
         </ng-container>
       </ul>
-    </div>
-    
-    <!-- User Info -->
-    <div class="p-3 border-top border-secondary mt-auto">
-      <div class="d-flex align-items-center mb-2">
-        <div class="flex-shrink-0 me-3">
-          <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-            <i class="bi bi-person-fill"></i>
+      <div class="p-3">
+        <div class="d-flex align-items-center mb-3">
+          <div class="flex-shrink-0 me-3">
+            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+              <i class="bi bi-person-fill"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-medium">{{ currentUser?.role || 'User' | titlecase }}</div>
           </div>
         </div>
-        <div class="flex-grow-1">
-          <div class="fw-medium">{{ currentUser?.role || 'User' | titlecase }}</div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-light btn-sm w-100 py-1" (click)="navigateToProfile()">
+            <i class="bi bi-person me-2"></i>Profile
+          </button>
+          <button class="btn btn-outline-light btn-sm w-100 py-1" (click)="logout()">
+            <i class="bi bi-box-arrow-right me-2"></i>Logout
+          </button>
         </div>
       </div>
-      <button class="btn btn-outline-light btn-sm w-100 py-1" (click)="logout()">
-        <i class="bi bi-box-arrow-right me-2"></i>Logout
-      </button>
     </div>
   </aside>
 
@@ -99,7 +104,7 @@
     </nav>
 
     <!-- Page Content -->
-    <div class="flex-grow-1 p-3 overflow-auto" (click)="onContentClick()" style="background-color: #f8f9fa;">
+    <div class="flex-grow-1 p-3 overflow-auto" (click)="onContentClick($event)" style="background-color: #f8f9fa;">
       <div class="container-fluid py-3">
         <ng-content></ng-content>
         <router-outlet></router-outlet>

@@ -1,20 +1,20 @@
 import { Component, HostListener, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NavbarItem } from '../../interfaces/navbarItem.interface';
 import { AuthService } from '../../services/auth.service';
 import { NavbarService } from '../../services/navbar.service';
 import { Observable, of } from 'rxjs';
-import { map, tap, filter } from 'rxjs/operators';
+import { map, tap, filter, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-vertical-layout',
   standalone: true,
   imports: [
     CommonModule,
-    RouterOutlet,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    RouterOutlet
   ],
   templateUrl: './vertical-layout.component.html',
   styleUrls: ['./vertical-layout.component.css']
@@ -117,22 +117,23 @@ export class VerticalLayoutComponent implements OnInit {
     event.stopPropagation();
     
     if (item.listOfSubMenu && item.listOfSubMenu.length > 0) {
-      // Toggle the expanded state for the clicked item
-      item.isExpanded = !item.isExpanded;
-      
-      // Update the navItems$ with the new state
-      this.navItems$ = this.navItems$.pipe(
-        map(items => {
-          return items.map(i => {
-            if (i === item) {
-              return { ...i, isExpanded: item.isExpanded };
-            }
-            return i;
-          });
-        })
-      );
+      // Use take(1) to get the current value of the observable
+      this.navItems$.pipe(
+        take(1)
+      ).subscribe((items: NavbarItem[]) => {
+        const updatedItems = items.map((i: NavbarItem) => ({
+          ...i,
+          // Toggle the clicked item, close all others
+          isExpanded: i === item ? !i.isExpanded : false
+        }));
+        
+        this.navItems$ = of(updatedItems);
+      });
     } else if (item.menuLink) {
       this.router.navigate([item.menuLink]);
+      if (this.isMobileView) {
+        this.toggleSidebar();
+      }
     }
   }
 
@@ -230,11 +231,41 @@ export class VerticalLayoutComponent implements OnInit {
   }
 
   // Handle clicks on the main content area
-  onContentClick() {
+  onContentClick(event: MouseEvent) {
+    // Don't close dropdowns if clicking on a dropdown toggle or its children
+    const target = event.target as HTMLElement;
+    if (target.closest('.nav-link')) {
+      return;
+    }
+
+    // Close any open dropdowns when clicking on content
+    this.navItems$.pipe(
+      take(1)
+    ).subscribe((items: NavbarItem[]) => {
+      const hasOpenDropdown = items.some((item: NavbarItem) => item.isExpanded);
+      
+      if (hasOpenDropdown) {
+        this.navItems$ = of(
+          items.map((item: NavbarItem) => ({
+            ...item,
+            isExpanded: false
+          }))
+        );
+      }
+    });
+
     if (this.isMobileView && this.isSidebarOpen) {
       this.isSidebarOpen = false;
       document.removeEventListener('click', this.onBackdropClick);
       this.cdr.detectChanges();
+    }
+  }
+
+  // Navigate to profile
+  navigateToProfile() {
+    this.router.navigate(['/profile']);
+    if (this.isMobileView) {
+      this.toggleSidebar();
     }
   }
 }
