@@ -15,6 +15,7 @@ export class MultiSelectComponent {
   @Input() selectedOptions: string[] = [];
   @Input() maxHeight: string = '200px';
   @Input() maxSelections: number | null = null;
+  @Input() disabled: boolean = false;
   @Output() selectedOptionsChange = new EventEmitter<string[]>();
   @Output() selectionChange = new EventEmitter<string[]>();
 

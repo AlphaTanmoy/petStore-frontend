@@ -14,6 +14,7 @@ export class SingleSelectComponent {
   @Input() placeholder: string = 'Select an option';
   @Input() selectedOption: string | null = null;
   @Input() maxHeight: string = '200px';
+  @Input() disabled: boolean = false;
   @Output() selectedOptionChange = new EventEmitter<string | null>();
   @Output() selectionChange = new EventEmitter<string | null>();
 

@@ -41,7 +41,8 @@ export class AdminLoginService {
     [UserTypes.ROLE_DOCTOR]: { sendOtp: DOCTOR_SEND_OTP, signIn: DOCTOR_SIGN_IN },
     [UserTypes.ROLE_CUSTOMER_CARE]: { sendOtp: CUSTOMER_CARE_SEND_OTP, signIn: CUSTOMER_CARE_SIGN_IN },
     [UserTypes.ROLE_RAIDER]: { sendOtp: RAIDER_SEND_OTP, signIn: RAIDER_SIGN_IN },
-    [UserTypes.ROLE_MASTER]: { sendOtp: MASTER_SEND_OTP, signIn: MASTER_SIGN_IN }
+    [UserTypes.ROLE_MASTER]: { sendOtp: MASTER_SEND_OTP, signIn: MASTER_SIGN_IN },
+    [UserTypes.ROLE_GUEST]: { sendOtp: '', signIn: '' } // Guests typically don't need login endpoints
   };
 
   private currentEndpoints = this.endpoints[this.userType];

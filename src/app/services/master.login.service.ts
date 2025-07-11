@@ -30,7 +30,8 @@ export class MasterLoginService {
     [UserTypes.ROLE_SELLER]: { sendOtp: '', signIn: '' },
     [UserTypes.ROLE_DOCTOR]: { sendOtp: '', signIn: '' },
     [UserTypes.ROLE_CUSTOMER_CARE]: { sendOtp: '', signIn: '' },
-    [UserTypes.ROLE_RAIDER]: { sendOtp: '', signIn: '' }
+    [UserTypes.ROLE_RAIDER]: { sendOtp: '', signIn: '' },
+    [UserTypes.ROLE_GUEST]: { sendOtp: '', signIn: '' } // Guests typically don't need login endpoints
   };
 
   private currentEndpoints = this.endpoints[this.userType];
