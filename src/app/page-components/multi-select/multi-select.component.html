@@ -1,5 +1,5 @@
-<div class="multi-select" [class.open]="isOpen">
-  <div class="select-container" (click)="toggleDropdown()">
+<div class="multi-select" [class.open]="isOpen" [class.disabled]="disabled">
+  <div class="select-container" (click)="!disabled && toggleDropdown()" [class.disabled]="disabled">
     <div class="selected-options" [class.placeholder]="selectedOptions.length === 0">
       <ng-container *ngIf="selectedOptions.length > 0; else placeholderText">
         <span class="selected-tag" *ngFor="let option of selectedOptions">

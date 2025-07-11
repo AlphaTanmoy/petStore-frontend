@@ -1,5 +1,5 @@
-<div class="single-select" [class.open]="isOpen">
-  <div class="select-container" (click)="toggleDropdown()">
+<div class="single-select" [class.open]="isOpen" [class.disabled]="disabled">
+  <div class="select-container" (click)="!disabled && toggleDropdown()" [class.disabled]="disabled">
     <div class="selected-option" [class.placeholder]="!selectedOption">
       {{ selectedOption || placeholder }}
     </div>

@@ -1,1 +1,136 @@
-<p>view-navbar works!</p>
+<div class="container-fluid py-3">
+  <!-- Loading Overlay -->
+  @if (isLoading && isInitialLoad) {
+    <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75" style="z-index: 1050;">
+      <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading navigation items...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Loading more indicator -->
+  @if (isLoading && !isInitialLoad) {
+    <div class="text-center py-3 border-top">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">Loading more...</span>
+      </div>
+      <span class="ms-2 small text-muted">Loading more items...</span>
+    </div>
+  }
+
+  <!-- Filter Card -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-light py-2">
+      <h5 class="mb-0">Navbar Items</h5>
+    </div>
+    <div class="card-body py-3">
+      <form class="row g-3">
+        <!-- Menu Type Filter -->
+        <div class="col-md-3">
+          <label class="form-label small fw-bold text-muted mb-1">MENU TYPE</label>
+          <app-single-select 
+            #menuTypeSelect
+            [options]="menuTypeOptions"
+            [selectedOption]="selectedMenuType || 'All Menu Items'"
+            (selectionChange)="onMenuTypeChange($event)"
+            placeholder="Select menu type">
+          </app-single-select>
+        </div>
+
+        <!-- Roles Filter -->
+        <div class="col-md-4">
+          <label class="form-label small fw-bold text-muted mb-1">FILTER BY ROLE</label>
+          <app-multi-select 
+            #rolesSelect
+            [options]="roleOptions"
+            [selectedOptions]="selectedRoles"
+            (selectionChange)="onRolesChange($event)"
+            placeholder="Select roles">
+          </app-multi-select>
+        </div>
+
+        <!-- Search -->
+        <div class="col-md-5">
+          <label for="searchInput" class="form-label small fw-bold text-muted mb-1">SEARCH</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-search text-muted"></i>
+            </span>
+            <input 
+              id="searchInput"
+              type="search" 
+              class="form-control" 
+              [(ngModel)]="searchText"
+              (ngModelChange)="onSearchChange()"
+              name="searchInput"
+              placeholder="Search navbar items..." 
+              [disabled]="isLoading" />
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Navbar Items Table -->
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3 small text-uppercase text-muted fw-bold">Title</th>
+            <th class="small text-uppercase text-muted fw-bold">URL</th>
+            <th class="small text-uppercase text-muted fw-bold">Order</th>
+            <th class="small text-uppercase text-muted fw-bold">Parent</th>
+            <th class="small text-uppercase text-muted fw-bold">Roles</th>
+            <th class="small text-uppercase text-muted fw-bold">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredNavbarItems.length > 0) {
+            @for (item of filteredNavbarItems; track item.id) {
+              <tr class="cursor-pointer">
+                <td class="ps-3 fw-medium">{{ item.menuName || 'N/A' }}</td>
+                <td>{{ item.menuLink || 'N/A' }}</td>
+                <td>{{ item.displayOrder || 'N/A' }}</td>
+                <td>{{ item.parentId ? item.parentId : '-' }}</td>
+                <td>
+                  @for (role of item.roles; track role) {
+                    <span class="badge me-1" 
+                          [ngClass]="role === 'ROLE_MASTER' ? 'bg-primary' : 'bg-secondary'">
+                      {{ role.replace('ROLE_', '') }}
+                    </span>
+                  }
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary me-1" [disabled]="isLoading">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" [disabled]="isLoading">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td colspan="6" class="text-center py-4">
+                @if (isLoading) {
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                } @else {
+                  <p class="text-muted mb-0">No navbar items found</p>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Infinite scroll will load more items automatically -->
+</div>
