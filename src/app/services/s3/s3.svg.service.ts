@@ -17,10 +17,16 @@ export class S3SvgService {
 
   constructor(private http: HttpClient) {}
 
-  uploadSvg(file: File, userRole: string): Observable<SvgUploadResponse> {
+  uploadSvg(file: File): Observable<SvgUploadResponse> {
     const formData = new FormData();
     formData.append('svgFile', file);
-    formData.append('userRole', userRole);
+    const userRole = sessionStorage.getItem('userRole');
+    if (userRole) {
+      formData.append('userRole', userRole);
+    } else {
+      console.error('User role not found in sessionStorage');
+      throw new Error('User role not found');
+    }
 
     return this.http.post<SvgUploadResponse>(
       this.UPLOAD_SVG_ENDPOINT,
