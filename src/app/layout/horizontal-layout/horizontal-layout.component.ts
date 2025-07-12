@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarItem } from '../../interfaces/navbarItem.interface';
 import { AuthService } from '../../services/auth.service';
-import { NavbarService } from '../../services/navbar.service';
+import { NavbarService } from '../../services/navbar/navbar.service';
 import { Observable, of, filter } from 'rxjs';
 import { map } from 'rxjs/operators';
 

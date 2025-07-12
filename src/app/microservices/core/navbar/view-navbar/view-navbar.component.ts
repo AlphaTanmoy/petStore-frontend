@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LoaderComponent } from '../../../../page-components/loader/loader.component';
-import { NavbarControlService } from '../../../../services/navbar.control.service';
+import { NavbarControlService } from '../../../../services/navbar/navbar.control.service';
 import { PopupService } from '../../../../services/popup.service';
 import { debounceTime, distinctUntilChanged, Subject, finalize } from 'rxjs';
 import { 
