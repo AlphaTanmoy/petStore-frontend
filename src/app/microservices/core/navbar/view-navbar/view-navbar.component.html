@@ -93,6 +93,15 @@
 
   <!-- Navbar Items Table -->
   <div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <h5 class="mb-0">Navigation Items</h5>
+      <button 
+        class="btn btn-primary btn-sm"
+        (click)="router.navigate(['/add-navbar'])"
+      >
+        <i class="bi bi-plus-lg me-1"></i> Add New Navbar Item
+      </button>
+    </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
@@ -150,10 +159,10 @@
                             [ngClass]="{
                               'bg-primary': role === 'MASTER',
                               'bg-success': role === 'ADMIN',
-                              'bg-info': role === 'CUSTOMER',
+                              'bg-info': role === 'USER',
                               'bg-warning': role === 'SELLER',
                               'bg-secondary': role === 'GUEST',
-                              'bg-danger': role === 'RAIDER',
+                              'bg-danger': role === 'RIDER',
                               'bg-dark': role === 'CUSTOMER_CARE' || role === 'DOCTOR'
                             }"
                             [title]="role">

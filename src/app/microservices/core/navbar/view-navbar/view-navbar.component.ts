@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit, HostListener, ViewChild, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LoaderComponent } from '../../../../page-components/loader/loader.component';
@@ -96,7 +97,8 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private navbarService: NavbarControlService,
-    private popupService: PopupService
+    private popupService: PopupService,
+    public router: Router
   ) {
     // Debounce search input
     this.searchSubject.pipe(
