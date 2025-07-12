@@ -14,6 +14,8 @@ export interface PaginationResponse<T> {
 export interface NavbarItemResponse {
   id: string;
   createdDate: string;
+  lastUpdated?: string;
+  dataStatus?: string;
   menuName: string;
   doHaveRedirectionLink: boolean;
   menuLink: string | null;
@@ -27,7 +29,10 @@ export interface NavbarItemResponse {
   customerCareAccess: boolean;
   isVisibleToGuest: boolean;
   isAssignedToParentMenu: boolean;
+  isAvailableWhileLoggedOut?: boolean;
   svgFileDataLink: string;
+  parent?: NavbarItemResponse;
+  listOfSubMenu?: NavbarItemResponse[];
 }
 
 export interface ApiResponse<T> {

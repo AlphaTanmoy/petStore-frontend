@@ -14,6 +14,7 @@ import { ViewCustomersComponent } from './users/customers/view-customers/view-cu
 import { ViewNavbarComponent } from './microservices/core/navbar/view-navbar/view-navbar.component';
 import { AddNabvarComponent } from './microservices/core/navbar/add-nabvar/add-nabvar.component';
 import { EditNavbarComponent } from './microservices/core/navbar/edit-navbar/edit-navbar.component';
+import { NavbarComponent } from './microservices/core/navbar/navbar/navbar.component';
 
 export const routes: Routes = [
   {
@@ -109,6 +110,19 @@ export const routes: Routes = [
     title: 'Edit Navbar',
     canActivate: [AuthGuardService],
     data: { allowedRoles: ['ROLE_MASTER'] }
+  },
+
+  {
+    path: 'navbar/edit/:id',
+    component: EditNavbarComponent,
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: ['ROLE_ADMIN', 'ROLE_MASTER'] },
+    title: 'Edit Navbar Item'
+  },
+  {
+    path: 'navbar/:id',
+    component: NavbarComponent,
+    title: 'Navbar Details'
   },
 
   {

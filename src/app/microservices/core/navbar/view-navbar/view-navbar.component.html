@@ -187,13 +187,19 @@
                   <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-outline-primary" 
                             [disabled]="isLoading"
-                            (click)="onEditItem(item)"
+                            (click)="onViewItem($event, item)"
+                            title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" 
+                            [disabled]="isLoading"
+                            (click)="onEditItem($event, item)"
                             title="Edit">
                       <i class="bi bi-pencil"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-danger" 
                             [disabled]="isLoading"
-                            (click)="onDeleteItem(item)"
+                            (click)="$event.stopPropagation(); onDeleteItem(item)"
                             title="Delete">
                       <i class="bi bi-trash"></i>
                     </button>
