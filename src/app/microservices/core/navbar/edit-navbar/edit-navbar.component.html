@@ -1,1 +1,276 @@
-<p>edit-navbar works!</p>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h3 class="mb-0">Edit Navbar Item</h3>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="navbarForm" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
+            <div class="row g-4">
+              <!-- Left Column: Form Fields -->
+              <div class="col-md-8">
+                <!-- Menu Name -->
+                <div class="mb-3">
+                  <label for="menuName" class="form-label">Menu Name <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="menuName" 
+                    formControlName="menuName"
+                    [class.is-invalid]="navbarForm.get('menuName')?.invalid && navbarForm.get('menuName')?.touched"
+                  >
+                  <div class="invalid-feedback">
+                    Please provide a menu name.
+                  </div>
+                </div>
+
+                <!-- Redirection Link Toggle -->
+                <div class="mb-3">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      role="switch"
+                      id="doHaveRedirectionLink" 
+                      formControlName="doHaveRedirectionLink"
+                      style="width: 3em; height: 1.5em;"
+                    >
+                    <label class="form-check-label ms-2" for="doHaveRedirectionLink">
+                      <span class="h5 mb-0">Has Redirection Link</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Menu Link (conditional) -->
+                <div class="mb-3" *ngIf="navbarForm.get('doHaveRedirectionLink')?.value">
+                  <label for="menuLink" class="form-label">Menu Link <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="menuLink" 
+                    formControlName="menuLink"
+                    placeholder="/example-path"
+                    [class.is-invalid]="navbarForm.get('menuLink')?.invalid && navbarForm.get('menuLink')?.touched"
+                  >
+                  <div class="invalid-feedback">
+                    Please provide a valid menu link.
+                  </div>
+                </div>
+
+                <!-- Submenu Toggle -->
+                <div class="mb-3">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      role="switch"
+                      id="isASubMenu" 
+                      formControlName="isASubMenu"
+                      style="width: 3em; height: 1.5em;"
+                    >
+                    <label class="form-check-label ms-2" for="isASubMenu">
+                      <span class="h5 mb-0">Is Submenu</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Parent Menu (conditional) -->
+                <div class="mb-3" *ngIf="navbarForm.get('isASubMenu')?.value">
+                  <label for="parentId" class="form-label">Parent Menu <span class="text-danger">*</span></label>
+                  <select 
+                    class="form-select" 
+                    id="parentId" 
+                    formControlName="parentId"
+                    [class.is-invalid]="navbarForm.get('parentId')?.invalid && navbarForm.get('parentId')?.touched"
+                  >
+                    <option value="" disabled selected>Select a parent menu</option>
+                    <option *ngFor="let menu of parentMenus" [value]="menu.secondParameter">
+                      {{ menu.firstParameter }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback">
+                    Please select a parent menu.
+                  </div>
+                </div>
+
+                <!-- Access Controls and Visibility Section -->
+                <div class="card mb-3">
+                  <div class="card-body">
+                    <!-- Access Controls -->
+                    <h5 class="mb-3">Access Controls</h5>
+                    <div class="row g-3">
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canMasterAccess" 
+                            formControlName="canMasterAccess"
+                          >
+                          <label class="form-check-label" for="canMasterAccess">Master Access</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canAdminAccess" 
+                            formControlName="canAdminAccess"
+                          >
+                          <label class="form-check-label" for="canAdminAccess">Admin Access</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canUserAccess" 
+                            formControlName="canUserAccess"
+                          >
+                          <label class="form-check-label" for="canUserAccess">User Access</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canDoctorAccess" 
+                            formControlName="canDoctorAccess"
+                          >
+                          <label class="form-check-label" for="canDoctorAccess">Doctor Access</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canSellerAccess" 
+                            formControlName="canSellerAccess"
+                          >
+                          <label class="form-check-label" for="canSellerAccess">Seller Access</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canRiderAccess" 
+                            formControlName="canRiderAccess"
+                          >
+                          <label class="form-check-label" for="canRiderAccess">Rider Access</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="canCustomerCareAccess" 
+                            formControlName="canCustomerCareAccess"
+                          >
+                          <label class="form-check-label" for="canCustomerCareAccess">Customer Care</label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Visibility -->
+                    <h5 class="mt-4 mb-3">Visibility</h5>
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="isVisibleToGuest" 
+                            formControlName="isVisibleToGuest"
+                          >
+                          <label class="form-check-label" for="isVisibleToGuest">Visible to Guests</label>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="isAvailableWhileLoggedOut" 
+                            formControlName="isAvailableWhileLoggedOut"
+                          >
+                          <label class="form-check-label" for="isAvailableWhileLoggedOut">Available When Logged Out</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: SVG Upload -->
+              <div class="col-md-4">
+                <div class="card h-100">
+                  <div class="card-header bg-light">
+                    <h5 class="mb-0">Menu Icon</h5>
+                  </div>
+                  <div class="card-body d-flex flex-column align-items-center">
+                    <div class="mb-3 text-center">
+                      <div *ngIf="svgFileUrl" class="mb-3">
+                        <img [src]="svgFileUrl" alt="Menu Icon" class="img-fluid" style="max-height: 100px;">
+                      </div>
+                      <app-upload-svg
+                        (fileSelected)="handleSvgFile($event)"
+                        [reset]="resetUploader"
+                        [isUploading]="isSvgUploading"
+                      ></app-upload-svg>
+                      <div *ngIf="svgFileUrl" class="mt-2">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="resetSvgUploader()"
+                          [disabled]="isSvgUploading"
+                        >
+                          <i class="bi bi-x-circle me-1"></i> Remove Icon
+                        </button>
+                      </div>
+                    </div>
+                    <small class="text-muted text-center">
+                      Upload an SVG icon for this menu item. Recommended size: 24x24px.
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button 
+                type="button" 
+                class="btn btn-outline-secondary"
+                (click)="onCancel()"
+                [disabled]="isSubmitting"
+              >
+                <i class="bi bi-x-lg me-1"></i> Cancel
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-primary"
+                [disabled]="navbarForm.invalid || isSubmitting"
+              >
+                <span *ngIf="!isSubmitting">
+                  <i class="bi bi-save me-1"></i> Save Changes
+                </span>
+                <span *ngIf="isSubmitting" class="d-flex align-items-center">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Saving...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

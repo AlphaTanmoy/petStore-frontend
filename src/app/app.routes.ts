@@ -13,6 +13,7 @@ import { UserTypes } from './constants/enums/user-types';
 import { ViewCustomersComponent } from './users/customers/view-customers/view-customers.component';
 import { ViewNavbarComponent } from './microservices/core/navbar/view-navbar/view-navbar.component';
 import { AddNabvarComponent } from './microservices/core/navbar/add-nabvar/add-nabvar.component';
+import { EditNavbarComponent } from './microservices/core/navbar/edit-navbar/edit-navbar.component';
 
 export const routes: Routes = [
   {
@@ -98,6 +99,14 @@ export const routes: Routes = [
     path: 'add-navbar',
     component: AddNabvarComponent,
     title: 'Add Navbar',
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: ['ROLE_MASTER'] }
+  },
+
+  {
+    path: 'edit-navbar/:id',
+    component: EditNavbarComponent,
+    title: 'Edit Navbar',
     canActivate: [AuthGuardService],
     data: { allowedRoles: ['ROLE_MASTER'] }
   },

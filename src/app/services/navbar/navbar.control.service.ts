@@ -11,7 +11,7 @@ import {
     ApiResponse,
     IsParentMenuResponse
 } from '../../interfaces/navbar.interface';
-import { NAVBAR_LIST, NAVBAR_LIST_ADD, NAVBAR_LIST_EDIT, NAVBAR_LIST_DELETE, IS_PARENT_MENU, GET_ALL_PARENT_MENU } from '../../constants/api-endpoints';
+import { NAVBAR_LIST, NAVBAR_LIST_ADD, NAVBAR_LIST_EDIT, NAVBAR_LIST_DELETE, IS_PARENT_MENU, GET_ALL_PARENT_MENU, GET_NAVBAR_BY_ID } from '../../constants/api-endpoints';
 
 interface TwoParameterDTO {
     firstParameter: string;
@@ -195,6 +195,20 @@ export class NavbarControlService {
         return this.http.post<ApiResponse<IsParentMenuResponse>>(
             IS_PARENT_MENU,
             { id }, // Send as JSON object in request body
+            {
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+    }
+
+    /**
+     * Get a navbar item by its ID
+     * @param id The ID of the navbar item to retrieve
+     * @returns Observable with the API response containing the navbar item
+     */
+    getNavbarItemById(id: string): Observable<ApiResponse<NavbarItemResponse>> {
+        return this.http.get<ApiResponse<NavbarItemResponse>>(
+            `${GET_NAVBAR_BY_ID}/${id}`,
             {
                 headers: { 'Content-Type': 'application/json' }
             }

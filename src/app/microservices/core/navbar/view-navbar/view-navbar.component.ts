@@ -559,16 +559,23 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchNavbarItems();
   }
 
+  /**
+   * Navigates to the edit page for the specified navbar item
+   * @param item The navbar item to edit
+   */
   onEditItem(item: NavbarItem): void {
-    // TODO: Implement edit functionality
-    console.log('Edit item:', item);
-    this.popupService.showPopup(
-      PopupType.INFO,
-      'Edit Menu Item',
-      'Edit functionality will be implemented here.',
-      undefined,
-      undefined,
-      'OK'
-    );
+    if (item && item.id) {
+      this.router.navigate(['/edit-navbar', item.id]);
+    } else {
+      console.error('Cannot edit item: Invalid or missing ID');
+      this.popupService.showPopup(
+        PopupType.ERROR,
+        'Error',
+        'Cannot edit this item: Invalid or missing ID',
+        undefined,
+        undefined,
+        'OK'
+      );
+    }
   }
 }

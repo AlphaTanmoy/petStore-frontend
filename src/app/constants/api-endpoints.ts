@@ -32,6 +32,7 @@ export const NAVBAR_LIST_EDIT = CORE_URL + '/navbar/edit';
 export const NAVBAR_LIST_DELETE = CORE_URL + '/navbar/delete';
 export const IS_PARENT_MENU = CORE_URL + '/navbar/isAParentMenu';
 export const GET_ALL_PARENT_MENU = CORE_URL + '/navbar/getParentMenu';
+export const GET_NAVBAR_BY_ID = CORE_URL + '/navbar/id';
 //=====================================CORE MICROSERVICE ENDPOINTS=======================================>
 
 

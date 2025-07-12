@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -8,7 +8,10 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule],
   templateUrl: './upload-svg.component.html'
 })
-export class UploadSvgComponent {
+export class UploadSvgComponent implements OnChanges {
+  @Input() reset = false;
+  @Input() isUploading = false;
+  
   @Output() fileSelected = new EventEmitter<File>();
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<File>();
@@ -18,6 +21,12 @@ export class UploadSvgComponent {
   fileName = '';
   isPreviewing = false;
   previewError: string | null = null;
+
+  ngOnChanges(changes: any): void {
+    if (changes.reset && changes.reset.currentValue === true) {
+      this.resetForm();
+    }
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -87,7 +96,19 @@ export class UploadSvgComponent {
   }
 
   resetForm(): void {
-    this.handlePreviewError('');
+    // Clear any existing preview URL
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+    }
+    
+    // Reset all form state
+    this.previewUrl = null;
+    this.selectedFile = null;
+    this.fileName = '';
+    this.isPreviewing = false;
+    this.previewError = null;
+    
+    // Reset the file input
     const fileInput = document.getElementById('svgFileInput') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
