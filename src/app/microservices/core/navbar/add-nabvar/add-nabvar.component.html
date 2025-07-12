@@ -85,9 +85,9 @@
                     [class.is-invalid]="navbarForm.get('parentId')?.invalid && navbarForm.get('parentId')?.touched"
                   >
                     <option value="" disabled selected>Select a parent menu</option>
-                    <!-- TODO: Populate with actual parent menus -->
-                    <option value="1">Parent Menu 1</option>
-                    <option value="2">Parent Menu 2</option>
+                    <option *ngFor="let menu of parentMenus" [value]="menu.secondParameter">
+                      {{ menu.firstParameter }}
+                    </option>
                   </select>
                   <div class="invalid-feedback">
                     Please select a parent menu.
@@ -100,6 +100,21 @@
                     <!-- Access Controls -->
                     <h5 class="mb-3">Access Controls</h5>
                     <div class="row g-3">
+                      <div class="col-6 col-md-4">
+                        <div class="form-check form-switch form-switch-lg">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            role="switch"
+                            id="canMasterAccess" 
+                            formControlName="canMasterAccess"
+                            style="width: 2.5em; height: 1.4em;"
+                          >
+                          <label class="form-check-label ms-2" for="canMasterAccess">
+                            Master Access
+                          </label>
+                        </div>
+                      </div>
                       <div class="col-6 col-md-4">
                         <div class="form-check form-switch form-switch-lg">
                           <input 

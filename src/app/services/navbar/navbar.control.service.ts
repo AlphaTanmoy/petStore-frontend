@@ -25,8 +25,7 @@ export class NavbarControlService {
     constructor(private http: HttpClient) { }
 
     getParentMenu(): Observable<ApiResponse<TwoParameterDTO[]>> {
-        const headers = new HttpHeaders().set('Alpha', localStorage.getItem('token') || '');
-        return this.http.get<ApiResponse<TwoParameterDTO[]>>(GET_ALL_PARENT_MENU, { headers });
+        return this.http.get<ApiResponse<TwoParameterDTO[]>>(GET_ALL_PARENT_MENU);
     }
 
     getNavbarItems(params: Partial<NavbarListRequest> = {}): Observable<PaginationResponse<NavbarItemResponse>> {

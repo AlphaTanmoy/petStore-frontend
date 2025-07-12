@@ -21,6 +21,7 @@ export class AddNabvarComponent implements OnInit {
   svgFileUrl: string | null = null;
   isSvgUploading = false;
   resetUploader = false;
+  parentMenus: { firstParameter: string; secondParameter: string }[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -29,20 +30,23 @@ export class AddNabvarComponent implements OnInit {
     private popupService: PopupService,
     private router: Router
   ) {
+    this.loadParentMenus();
     this.navbarForm = this.fb.group({
       menuName: ['', [Validators.required, Validators.maxLength(100)]],
       doHaveRedirectionLink: [false],
       menuLink: [''],
       isASubMenu: [false],
       parentId: [null],
-      canAdminAccess: [true],
-      canUserAccess: [true],
+      canMasterAccess: [false],
+      canAdminAccess: [false],
+      canUserAccess: [false],
       canDoctorAccess: [false],
       canSellerAccess: [false],
       canRiderAccess: [false],
       chatUsersAccess: [false],
       isVisibleToGuest: [false],
-      isAvailableWhileLoggedOut: [false]
+      isAvailableWhileLoggedOut: [false],
+      svgFileDataLink: ['']
     });
   }
 
@@ -72,6 +76,24 @@ export class AddNabvarComponent implements OnInit {
     });
   }
 
+  private loadParentMenus(): void {
+    this.navbarService.getParentMenu().subscribe({
+      next: (response) => {
+        if (response.status && response.data) {
+          this.parentMenus = response.data;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading parent menus:', error);
+        this.popupService.showPopup(
+          PopupType.ERROR,
+          'Error',
+          'Failed to load parent menus'
+        );
+      }
+    });
+  }
+
   onSvgUploaded(url: string): void {
     this.svgFileUrl = url;
     this.isSvgUploading = false;
@@ -97,7 +119,7 @@ export class AddNabvarComponent implements OnInit {
     const formData: AddNavbarRequest = {
       ...this.navbarForm.value,
       svgFileDataLink: this.svgFileUrl,
-      canMasterAccess: false, // Assuming this is always false for now
+      canMasterAccess: this.navbarForm.get('canMasterAccess')?.value || false,
       canCustomerCareAccess: this.navbarForm.get('chatUsersAccess')?.value || false,
       menuLink: this.navbarForm.get('doHaveRedirectionLink')?.value 
         ? this.navbarForm.get('menuLink')?.value 
