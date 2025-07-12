@@ -67,7 +67,8 @@ export const RAIDER_SEND_OTP = MANAGEMENT_URL + '/sent/otp';
 export const UPLOAD_SVG_IMAGE = S3_URL + '/s3/uploadSvgImage';
 export const UPLOAD_PNG_IMAGE = S3_URL + '/s3/uploadPngImage';
 export const UPLOAD_JPG_IMAGE = S3_URL + '/s3/uploadJpgImage';
-
+export const DELETE_SVG_IMAGE = S3_URL + "/s3/deleteSvg";
+export const ASSIGN_ID_TO_IMAGE = S3_URL + "/s3/assignId";
 //=====================================S3 MICROSERVICE ENDPOINTS===========================================>
 
 
