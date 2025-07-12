@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { NavbarItem } from '../interfaces/navbarItem.interface';
-import { NAVBAR_LIST_TO_DISPLAY } from '../constants/api-endpoints';
-import { AuthService } from './auth.service';
+import { NavbarItem } from '../../interfaces/navbarItem.interface';
+import { NAVBAR_LIST_TO_DISPLAY } from '../../constants/api-endpoints';
+import { AuthService } from '../../services/auth.service';
 export interface NavbarApiResponse {
   status: boolean;
   message: string;

@@ -10,14 +10,24 @@ import {
     EditNavbarRequest,
     ApiResponse,
     IsParentMenuResponse
-} from '../interfaces/navbar.interface';
-import { NAVBAR_LIST, NAVBAR_LIST_ADD, NAVBAR_LIST_EDIT, NAVBAR_LIST_DELETE, IS_PARENT_MENU } from '../constants/api-endpoints';
+} from '../../interfaces/navbar.interface';
+import { NAVBAR_LIST, NAVBAR_LIST_ADD, NAVBAR_LIST_EDIT, NAVBAR_LIST_DELETE, IS_PARENT_MENU, GET_PARENT_MENU } from '../../constants/api-endpoints';
+
+interface TwoParameterDTO {
+    firstParameter: string;
+    secondParameter: string;
+}
 
 @Injectable({
     providedIn: 'root'
 })
 export class NavbarControlService {
     constructor(private http: HttpClient) { }
+
+    getParentMenu(): Observable<ApiResponse<TwoParameterDTO[]>> {
+        const headers = new HttpHeaders().set('Alpha', localStorage.getItem('token') || '');
+        return this.http.get<ApiResponse<TwoParameterDTO[]>>(GET_PARENT_MENU, { headers });
+    }
 
     getNavbarItems(params: Partial<NavbarListRequest> = {}): Observable<PaginationResponse<NavbarItemResponse>> {
         const defaultParams: NavbarListRequest = {

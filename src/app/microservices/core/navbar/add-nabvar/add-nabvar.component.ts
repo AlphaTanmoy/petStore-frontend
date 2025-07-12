@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NavbarControlService } from '../../../../services/navbar.control.service';
+import { NavbarControlService } from '../../../../services/navbar/navbar.control.service';
 import { S3SvgService } from '../../../../services/s3/s3.svg.service';
 import { PopupService } from '../../../../services/popup.service';
 import { PopupType } from '../../../../constants/enums/popup-types';
