@@ -12,6 +12,7 @@ import { AuthGuardService } from './services/auth-guard.service';
 import { UserTypes } from './constants/enums/user-types';
 import { ViewCustomersComponent } from './users/customers/view-customers/view-customers.component';
 import { ViewNavbarComponent } from './microservices/core/navbar/view-navbar/view-navbar.component';
+import { AddNabvarComponent } from './microservices/core/navbar/add-nabvar/add-nabvar.component';
 
 export const routes: Routes = [
   {
@@ -89,6 +90,14 @@ export const routes: Routes = [
     path: 'view-navbar',
     component: ViewNavbarComponent,
     title: 'View Navbar',
+    canActivate: [AuthGuardService],
+    data: { allowedRoles: ['ROLE_MASTER'] }
+  },
+
+  {
+    path: 'add-navbar',
+    component: AddNabvarComponent,
+    title: 'Add Navbar',
     canActivate: [AuthGuardService],
     data: { allowedRoles: ['ROLE_MASTER'] }
   },

@@ -1,18 +1,20 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { S3SvgService, SvgUploadResponse } from '../../../services/s3/s3.svg.service';
 import { PopupService } from '../../../services/popup.service';
+import { PopupType } from '../../../constants/enums/popup-types';
 
 @Component({
   selector: 'app-upload-svg',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './upload-svg.component.html',
-  styleUrls: ['./upload-svg.component.css']
+  templateUrl: './upload-svg.component.html'
 })
-export class UploadSvgComponent {
+export class UploadSvgComponent implements OnChanges {
+  @Output() uploadStart = new EventEmitter<void>();
   @Output() uploadComplete = new EventEmitter<string>();
+  @Input() resetSignal: boolean = false;
   
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
@@ -23,21 +25,39 @@ export class UploadSvgComponent {
     private popupService: PopupService
   ) {}
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['resetSignal'] && changes['resetSignal'].currentValue) {
+      this.resetForm();
+    }
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      
-      // Check if file is SVG
-      if (file.type !== 'image/svg+xml' && !file.name.endsWith('.svg')) {
-        this.popupService.showError('Please select a valid SVG file', 'Invalid File Type');
-        this.resetFileInput(input);
-        return;
-      }
-      
-      this.selectedFile = file;
-      this.previewFile(file);
+    this.processFile(input.files);
+  }
+  
+  private processFile(fileList: FileList | null): void {
+    if (!fileList || fileList.length === 0) return;
+    
+    const file = fileList[0];
+    
+    // Check if file is SVG
+    if (file.type !== 'image/svg+xml' && !file.name.toLowerCase().endsWith('.svg')) {
+      this.popupService.showPopup(PopupType.ERROR, 'Invalid File Type', 'Please select a valid SVG file');
+      this.resetFileInput();
+      return;
     }
+    
+    // Check file size (limit to 1MB)
+    if (file.size > 1024 * 1024) {
+      this.popupService.showPopup(PopupType.ERROR, 'File Too Large', 'SVG file must be less than 1MB');
+      this.resetFileInput();
+      return;
+    }
+    
+    this.selectedFile = file;
+    this.previewFile(file);
+    this.uploadFile();
   }
   
   private previewFile(file: File): void {
@@ -45,36 +65,38 @@ export class UploadSvgComponent {
     reader.onload = () => {
       this.previewUrl = reader.result;
     };
+    reader.onerror = () => {
+      console.error('Error reading file');
+      this.popupService.showPopup(PopupType.ERROR, 'Error', 'Could not read the SVG file');
+    };
     reader.readAsDataURL(file);
   }
   
-  onUpload(): void {
-    if (!this.selectedFile) {
-      this.popupService.showError('Please select an SVG file to upload', 'No File Selected');
-      return;
-    }
+  private uploadFile(): void {
+    if (!this.selectedFile) return;
     
     this.isUploading = true;
+    this.uploadStart.emit();
     
     this.s3SvgService.uploadSvg(this.selectedFile, 'ROLE_MASTER').subscribe({
       next: (response: SvgUploadResponse) => {
         if (response.status && response.data) {
           this.uploadComplete.emit(response.data);
-          this.popupService.showSuccess('SVG uploaded successfully!', 'Success');
         } else {
           throw new Error(response.message || 'Failed to upload SVG');
         }
       },
       error: (error) => {
         console.error('Upload error:', error);
-        this.popupService.showError(
-          error.error?.message || 'An error occurred while uploading the SVG',
-          'Upload Failed'
+        this.popupService.showPopup(
+          PopupType.ERROR,
+          'Upload Failed',
+          error.error?.message || 'An error occurred while uploading the SVG'
         );
+        this.isUploading = false;
       },
       complete: () => {
         this.isUploading = false;
-        this.resetForm();
       }
     });
   }
@@ -89,29 +111,20 @@ export class UploadSvgComponent {
     event.stopPropagation();
     
     const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      const input = document.createElement('input');
-      input.type = 'file';
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      input.files = dataTransfer.files;
-      this.onFileSelected({ target: input } as unknown as Event);
-    }
+    this.processFile(files || null);
   }
   
-  private resetFileInput(input: HTMLInputElement): void {
-    input.value = '';
-    this.selectedFile = null;
-    this.previewUrl = null;
-  }
-  
-  private resetForm(): void {
-    this.selectedFile = null;
-    this.previewUrl = null;
+  private resetFileInput(): void {
     const fileInput = document.getElementById('svgFileInput') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
     }
+  }
+  
+  public resetForm(): void {
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.resetFileInput();
+    this.uploadComplete.emit('');
   }
 }
