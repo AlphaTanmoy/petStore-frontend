@@ -1,62 +1,59 @@
 <div class="w-100">
+  <h5 class="mb-3">Menu Icon <span class="text-danger">*</span></h5>
+  <p class="text-muted mb-3">Upload an SVG file for the menu icon<br>Max size: 1MB</p>
+
   <!-- File Drop Zone -->
-  <div 
-    class="border-2 border-dashed rounded-3 p-4 text-center mb-3"
-    [class.border-primary]="!previewUrl"
-    [class.border-success]="previewUrl"
-    [class.bg-light]="!previewUrl"
-    [class.bg-light-success]="previewUrl"
-    (dragover)="onDragOver($event)"
-    (drop)="onDrop($event)"
-    style="min-height: 180px;"
-  >
-    <div *ngIf="!previewUrl" class="d-flex flex-column justify-content-center align-items-center h-100">
+  <div class="border border-2 border-dashed rounded-3 p-4 text-center mb-4"
+       [class.border-primary]="!isPreviewing"
+       [class.border-success]="isPreviewing"
+       [class.bg-light]="!isPreviewing"
+       [class.bg-success-subtle]="isPreviewing"
+       (dragover)="onDragOver($event)"
+       (drop)="onDrop($event)"
+       style="min-height: 180px;">
+       
+    <!-- Upload Prompt -->
+    <div *ngIf="!isPreviewing && !previewError" class="d-flex flex-column justify-content-center align-items-center h-100">
       <i class="bi bi-cloud-arrow-up fs-1 text-muted mb-3"></i>
       <p class="fw-medium text-dark mb-2">Drag & drop SVG file</p>
       <p class="text-muted small mb-3">or</p>
       <label for="svgFileInput" class="btn btn-sm btn-outline-primary mb-0">
         Choose File
       </label>
-      <input 
-        id="svgFileInput"
-        type="file" 
-        class="d-none" 
-        accept=".svg,image/svg+xml"
-        (change)="onFileSelected($event)"
-      >
+      <input id="svgFileInput"
+             type="file" 
+             class="d-none" 
+             accept=".svg,image/svg+xml"
+             (change)="onFileSelected($event)">
     </div>
-    
+
     <!-- Preview Section -->
-    <div *ngIf="previewUrl" class="h-100 d-flex flex-column justify-content-center">
-      <div class="position-relative d-inline-block mx-auto">
-        <img 
-          [src]="previewUrl" 
-          alt="SVG Preview" 
-          class="img-fluid"
-          style="max-height: 80px;"
-        >
-        <button 
-          class="position-absolute top-0 end-0 bg-danger text-white rounded-circle border-0 d-flex align-items-center justify-content-center shadow-sm hover-scale-110"
-          style="width: 24px; height: 24px; transform: translate(50%, -50%);"
-          (click)="resetForm()"
-          type="button"
-          title="Remove"
-        >
-          <i class="bi bi-x fs-6"></i>
+    <div *ngIf="isPreviewing" class="h-100 d-flex flex-column justify-content-center">
+      <div class="position-relative mx-auto">
+        <div class="d-flex justify-content-center align-items-center bg-white rounded shadow-sm p-2" style="width: 200px; height: 200px;">
+          <img [src]="previewUrl" class="img-fluid" alt="SVG Preview">
+        </div>
+        <button class="position-absolute top-0 end-0 bg-danger text-white rounded-circle border-0 d-flex align-items-center justify-content-center shadow-sm"
+                style="width: 24px; height: 24px; transform: translate(50%, -50%);"
+                (click)="resetForm()"
+                type="button"
+                title="Remove">
+          <i class="bi bi-x"></i>
         </button>
       </div>
       <div class="mt-3 text-center">
-        <p class="mb-1 text-truncate" style="max-width: 200px;">{{ selectedFile?.name }}</p>
-        <p class="small text-muted mb-0">
-          {{ (selectedFile?.size || 0) / 1024 | number:'1.0-1' }} KB
-        </p>
+        <p class="mb-1 text-truncate mx-auto" style="max-width: 200px;">{{ fileName }}</p>
       </div>
     </div>
-  </div>
 
-  <!-- Status Message -->
-  <div *ngIf="isUploading" class="d-flex align-items-center justify-content-center text-primary">
-    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-    <span class="small">Uploading...</span>
+    <!-- Error Section -->
+    <div *ngIf="previewError" class="d-flex flex-column justify-content-center align-items-center h-100">
+      <i class="bi bi-exclamation-circle fs-1 text-danger mb-3"></i>
+      <p class="fw-medium text-danger mb-2">Upload Error</p>
+      <p class="text-muted small mb-3">{{ previewError }}</p>
+      <button class="btn btn-sm btn-outline-danger" (click)="resetForm()">
+        Try Again
+      </button>
+    </div>
   </div>
 </div>
