@@ -20,6 +20,7 @@ export class AddNabvarComponent implements OnInit {
   isSubmitting = false;
   svgFileUrl: string | null = null;
   isSvgUploading = false;
+  selectedSvgFile: File | null = null;
   resetUploader = false;
   parentMenus: { firstParameter: string; secondParameter: string }[] = [];
 
@@ -94,6 +95,43 @@ export class AddNabvarComponent implements OnInit {
     });
   }
 
+  handleSvgFile(file: File): void {
+    this.selectedSvgFile = file;
+    this.svgFileUrl = URL.createObjectURL(file);
+  }
+
+  private uploadSvg(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.selectedSvgFile) {
+        reject(new Error('No file selected'));
+        return;
+      }
+
+      this.isSvgUploading = true;
+      this.s3SvgService.uploadSvg(this.selectedSvgFile).subscribe({
+        next: (response: { status: boolean; data: string }) => {
+          if (response.status && response.data) {
+            this.svgFileUrl = response.data;
+            this.isSvgUploading = false;
+            resolve();
+          } else {
+            reject(new Error('Failed to upload SVG'));
+          }
+        },
+        error: (error: any) => {
+          console.error('Error uploading SVG:', error);
+          this.popupService.showPopup(
+            PopupType.ERROR,
+            'Error',
+            'Failed to upload SVG. Please try again.'
+          );
+          this.isSvgUploading = false;
+          reject(error);
+        }
+      });
+    });
+  }
+
   onSvgUploaded(url: string): void {
     this.svgFileUrl = url;
     this.isSvgUploading = false;
@@ -105,17 +143,50 @@ export class AddNabvarComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.navbarForm.invalid || !this.svgFileUrl) {
+    if (this.navbarForm.invalid) {
       this.popupService.showPopup(
         PopupType.ERROR,
         'Validation Error',
-        'Please fill all required fields and upload an SVG file.'
+        'Please fill all required fields.'
+      );
+      return;
+    }
+
+    if (!this.selectedSvgFile) {
+      this.popupService.showPopup(
+        PopupType.ERROR,
+        'Validation Error',
+        'Please select an SVG file.'
       );
       return;
     }
 
     this.isSubmitting = true;
     
+    // Upload SVG first
+    this.uploadSvg().then(() => {
+      if (this.svgFileUrl) {
+        this.submitForm();
+      } else {
+        this.popupService.showPopup(
+          PopupType.ERROR,
+          'Error',
+          'Failed to upload SVG file. Please try again.'
+        );
+        this.isSubmitting = false;
+      }
+    }).catch((error: any) => {
+      console.error('SVG upload failed:', error);
+      this.popupService.showPopup(
+        PopupType.ERROR,
+        'Error',
+        'Failed to upload SVG file. Please try again.'
+      );
+      this.isSubmitting = false;
+    });
+  }
+
+  private submitForm(): void {
     const formData: AddNavbarRequest = {
       ...this.navbarForm.value,
       svgFileDataLink: this.svgFileUrl,
@@ -145,10 +216,11 @@ export class AddNabvarComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error adding navbar item:', error);
+        const errorMessage = error.error?.errorMessage || error.error?.message || 'Failed to add navbar item';
         this.popupService.showPopup(
           PopupType.ERROR,
           'Error',
-          error.error?.message || 'Failed to add navbar item. Please try again.'
+          errorMessage
         );
         this.isSubmitting = false;
       },

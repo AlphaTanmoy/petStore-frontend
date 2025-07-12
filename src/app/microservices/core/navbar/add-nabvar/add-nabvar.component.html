@@ -251,11 +251,7 @@
                   <div class="card-body">
                     <h5 class="mb-3">Menu Icon <span class="text-danger">*</span></h5>
                     <div class="d-flex flex-column h-100">
-                      <app-upload-svg
-                        [resetSignal]="resetUploader"
-                        (uploadStart)="onSvgUploadStart()"
-                        (uploadComplete)="onSvgUploaded($event)"
-                      ></app-upload-svg>
+                      <app-upload-svg (fileSelected)="handleSvgFile($event)"></app-upload-svg>
                       
                       <div *ngIf="svgFileUrl" class="mt-3">
                         <div class="d-flex justify-content-center">

@@ -51,9 +51,14 @@ export class UploadSvgComponent {
       this.fileName = file.name;
       
       // Create object URL for preview
-      this.previewUrl = URL.createObjectURL(file);
+      const previewUrl = URL.createObjectURL(file);
+      this.previewUrl = previewUrl;
       this.isPreviewing = true;
       this.previewError = null;
+      
+      // Emit the file selection and preview URL
+      this.fileSelected.emit(file);
+      this.save.emit(file);
     } else {
       this.handlePreviewError('Please upload a valid SVG file');
     }
