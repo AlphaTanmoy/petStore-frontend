@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { LoaderComponent } from '../../../../page-components/loader/loader.component';
 import { NavbarControlService } from '../../../../services/navbar/navbar.control.service';
 import { PopupService } from '../../../../services/popup.service';
+import { S3SvgService } from '../../../../services/s3/s3.svg.service';
 import { debounceTime, distinctUntilChanged, Subject, finalize } from 'rxjs';
 import { 
   NavbarItemResponse, 
@@ -98,6 +99,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private navbarService: NavbarControlService,
     private popupService: PopupService,
+    private s3SvgService: S3SvgService,
     public router: Router
   ) {
     // Debounce search input
@@ -506,44 +508,69 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('=== Executing delete for ID:', id);
     this.isLoading = true;
     
-    this.navbarService.deleteNavbar(id).subscribe({
-      next: (response: ApiResponse<any>) => {
-        console.log('=== Delete API SUCCESS:', response);
-        
-        // Show success popup with data status if available
-        const statusMessage = response.data?.dataStatus 
-          ? `${response.message} (Status: ${response.data.dataStatus})` 
-          : response.message;
-        
-        this.popupService.showPopup(
-          PopupType.SUCCESS,
-          'Success',
-          statusMessage || 'Menu item deleted successfully',
-          () => {
-            this.popupService.hidePopup();
-            // Reload the data after successful deletion
-            this.reloadData();
-          },
-          undefined,
-          'OK'
-        );
-      },
-      error: (error: any) => {
-        console.error('=== Delete API ERROR:', error);
-        this.popupService.showPopup(
-          PopupType.ERROR,
-          'Deletion Failed',
-          error.error?.message || 'Failed to delete menu item. Please try again.',
-          () => this.popupService.hidePopup(),
-          undefined,
-          'OK'
-        );
-      },
-      complete: () => {
-        console.log('=== Delete API call completed');
-        this.isLoading = false;
-      }
-    });
+    // Find the item to be deleted to get the SVG file link
+    const itemToDelete = this.navbarItems.find(item => item.id === id);
+    
+    // Function to delete the navbar item
+    const deleteNavbarItem = () => {
+      this.navbarService.deleteNavbar(id).subscribe({
+        next: (response: ApiResponse<any>) => {
+          console.log('=== Delete API SUCCESS:', response);
+          
+          // Show success popup with data status if available
+          const statusMessage = response.data?.dataStatus 
+            ? `${response.message} (Status: ${response.data.dataStatus})` 
+            : response.message;
+          
+          this.popupService.showPopup(
+            PopupType.SUCCESS,
+            'Success',
+            statusMessage || 'Menu item deleted successfully',
+            () => {
+              this.popupService.hidePopup();
+              // Reload the data after successful deletion
+              this.reloadData();
+            },
+            undefined,
+            'OK'
+          );
+        },
+        error: (error: any) => {
+          console.error('=== Delete API ERROR:', error);
+          this.popupService.showPopup(
+            PopupType.ERROR,
+            'Deletion Failed',
+            error.error?.message || 'Failed to delete menu item. Please try again.',
+            () => this.popupService.hidePopup(),
+            undefined,
+            'OK'
+          );
+        },
+        complete: () => {
+          console.log('=== Delete API call completed');
+          this.isLoading = false;
+        }
+      });
+    };
+
+    // If there's an SVG file, delete it first
+    if (itemToDelete?.svgFileDataLink) {
+      this.s3SvgService.deleteSvg(itemToDelete.svgFileDataLink).subscribe({
+        next: () => {
+          console.log('SVG file deleted successfully');
+          // After SVG is deleted, delete the navbar item
+          deleteNavbarItem();
+        },
+        error: (error) => {
+          console.error('Error deleting SVG file:', error);
+          // Even if SVG deletion fails, still try to delete the navbar item
+          deleteNavbarItem();
+        }
+      });
+    } else {
+      // No SVG file to delete, just delete the navbar item
+      deleteNavbarItem();
+    }
   }
   
   /**
