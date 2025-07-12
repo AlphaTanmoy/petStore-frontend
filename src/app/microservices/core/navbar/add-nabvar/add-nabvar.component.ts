@@ -208,7 +208,7 @@ export class AddNabvarComponent implements OnInit {
             'Success',
             'Navbar item added successfully!',
             undefined,
-            () => this.router.navigate(['/navbar/list'])
+            () => this.router.navigate(['/view-navbar'])
           );
         } else {
           throw new Error(response.message || 'Failed to add navbar item');
