@@ -5,8 +5,8 @@ import { catchError, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { LoginResponse } from '../interfaces/loginresponse.interface';
 import { 
-  AUTH_SEND_OTP,
-  AUTH_SIGN_IN
+  MASTER_SEND_OTP,
+  MASTER_SIGN_IN
 } from '../constants/api-endpoints';
 import { UserTypes } from '../constants/enums/user-types';
 
@@ -23,7 +23,7 @@ export class MasterLoginService {
   private userType: UserTypes = UserTypes.ROLE_MASTER;
   
   private readonly endpoints: Record<UserTypes, EndpointPair> = {
-    [UserTypes.ROLE_MASTER]: { sendOtp: AUTH_SEND_OTP, signIn: AUTH_SIGN_IN },
+    [UserTypes.ROLE_MASTER]: { sendOtp: MASTER_SEND_OTP, signIn: MASTER_SIGN_IN },
     // Add other user types if needed in the future
     [UserTypes.ROLE_ADMIN]: { sendOtp: '', signIn: '' },
     [UserTypes.ROLE_CUSTOMER]: { sendOtp: '', signIn: '' },

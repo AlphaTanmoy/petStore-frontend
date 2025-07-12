@@ -18,8 +18,8 @@ export const ADMIN_SEND_OTP = ADMIN_URL + '/sent/otp';
 
 
 //=====================================AUTH MICROSERVICE ENDPOINTS=====================================>
-export const AUTH_SEND_OTP = AUTH_URL + '/sent/otp';
-export const AUTH_SIGN_IN = AUTH_URL + '/signIn';
+export const MASTER_SEND_OTP = AUTH_URL + '/sent/otp';
+export const MASTER_SIGN_IN = AUTH_URL + '/signIn';
 //=====================================AUTH MICROSERVICE ENDPOINTS=====================================>
 
 
@@ -52,7 +52,8 @@ export const DOCTOR_SEND_OTP = DOC_URL + '/sent/otp';
 //=====================================MANAGEMENT MICROSERVICE ENDPOINTS=====================================>
 export const CUSTOMER_CARE_SIGN_IN = MANAGEMENT_URL + '/customercare/signIn';
 export const RAIDER_SIGN_IN = MANAGEMENT_URL + '/raider/signIn';
-export const SEND_OTP = MANAGEMENT_URL + '/sent/otp';
+export const CUSTOMER_CARE_SEND_OTP = MANAGEMENT_URL + '/sent/otp';
+export const RAIDER_SEND_OTP = MANAGEMENT_URL + '/sent/otp';
 //=====================================MANAGEMENT MICROSERVICE ENDPOINTS=====================================>
 
 
