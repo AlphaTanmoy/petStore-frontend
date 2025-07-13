@@ -8,14 +8,16 @@
 <!-- Modal with proper ARIA and focus management -->
 <div #modal
      class="modal fade" 
-     [ngClass]="{'show d-block': isVisible}" 
+     [class.show]="isVisible"
+     [class.d-block]="isVisible"
+     [class.d-none]="!isVisible"
      role="dialog"
      tabindex="-1"
-     [attr.aria-modal]="isVisible"
+     aria-modal="true"
      [attr.aria-hidden]="!isVisible"
-     [attr.aria-labelledby]="isVisible ? 'modalTitle' : null"
-     [attr.aria-describedby]="isVisible ? 'modalMessage' : null"
-     [ngStyle]="{'display': isVisible ? 'block' : 'none'}"
+     [attr.aria-labelledby]="'modalTitle'"
+     [attr.aria-describedby]="'modalMessage'"
+     *ngIf="isVisible"
      (keydown.escape)="onClose()"
      (keydown)="onKeyDown($event)">
   <div class="modal-dialog modal-dialog-centered" role="document">

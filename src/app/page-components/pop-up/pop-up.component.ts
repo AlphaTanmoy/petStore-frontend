@@ -48,9 +48,9 @@ export class PopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
   
   ngAfterViewChecked(): void {
-    if (this.isVisible && this.modalElement) {
-      // Focus the modal when it becomes visible
-      this.modalElement.nativeElement.focus();
+    if (this.isVisible && this.firstFocusableElement) {
+      // Focus the first focusable element when the modal becomes visible
+      this.firstFocusableElement.nativeElement.focus();
     }
   }
 
@@ -109,17 +109,38 @@ export class PopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   onKeyDown(event: KeyboardEvent): void {
-    // Trap focus inside the modal
+    // Only handle keyboard events if the modal is visible
+    if (!this.isVisible) return;
+    
+    // Handle Escape key
+    if (event.key === 'Escape') {
+      this.onClose();
+      return;
+    }
+
+    // Handle Tab key for focus trapping
     if (event.key === 'Tab') {
+      const focusableElements = [
+        this.firstFocusableElement?.nativeElement,
+        this.lastFocusableElement?.nativeElement
+      ].filter(el => !!el);
+      
+      if (focusableElements.length === 0) return;
+      
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      
       if (event.shiftKey) {
-        if (document.activeElement === this.firstFocusableElement?.nativeElement) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
           event.preventDefault();
-          this.lastFocusableElement?.nativeElement.focus();
+          lastElement.focus();
         }
       } else {
-        if (document.activeElement === this.lastFocusableElement?.nativeElement) {
+        // Tab
+        if (document.activeElement === lastElement) {
           event.preventDefault();
-          this.firstFocusableElement?.nativeElement.focus();
+          firstElement.focus();
         }
       }
     }
