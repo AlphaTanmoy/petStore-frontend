@@ -20,16 +20,24 @@ export class S3SvgService {
   deleteSvg(link: string): Observable<{status: boolean, message: string}> {
     const userRole = sessionStorage.getItem('userRole');
     if (!userRole) {
-      console.error('User role not found in sessionStorage');
       throw new Error('User role not found');
     }
 
-    const params = {
+    const requestBody = {
       userRole: userRole,
       link: link
     };
 
-    return this.http.delete<{status: boolean, message: string}>(DELETE_SVG_IMAGE, { params });
+    // Get token from sessionStorage
+    const token = sessionStorage.getItem('jwt');
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
+
+    return this.http.post<{status: boolean, message: string}>(
+      DELETE_SVG_IMAGE, 
+      requestBody
+    );
   }
 
   uploadSvg(file: File): Observable<SvgUploadResponse> {
@@ -39,7 +47,6 @@ export class S3SvgService {
     if (userRole) {
       formData.append('userRole', userRole);
     } else {
-      console.error('User role not found in sessionStorage');
       throw new Error('User role not found');
     }
 
