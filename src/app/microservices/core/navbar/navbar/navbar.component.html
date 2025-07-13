@@ -88,19 +88,84 @@
     </div>
   </div>
 
-  <!-- Parent Item Section -->
+  <!-- Parent Menu Section -->
   <div *ngIf="parentItem" class="card shadow-sm mb-4">
     <div class="card-body">
-      <h3 class="h5 text-muted mb-3">Parent Menu</h3>
-      <div class="card border-0 shadow-sm hover-shadow" (click)="viewParent(parentItem.id)" style="cursor: pointer;">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h4 class="h6 mb-1">{{ parentItem.menuName }}</h4>
-              <p class="text-muted small mb-0">{{ parentItem.menuLink || 'No link' }}</p>
-            </div>
-            <i class="bi bi-chevron-right text-muted"></i>
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h2 class="h4 mb-1">
+            Parent Menu <i class="bi bi-arrow-right me-1"></i>
+            {{ parentItem.menuName }}
+          </h2>
+          <p class="text-muted small mb-0">ID: {{ parentItem.id }}</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <h3 class="h5 text-muted mb-3">Basic Information</h3>
+          <dl class="row">
+            <dt class="col-sm-5">Menu Link:</dt>
+            <dd class="col-sm-7">{{ parentItem.menuLink || 'N/A' }}</dd>
+            
+            <dt class="col-sm-5">Is Submenu:</dt>
+            <dd class="col-sm-7">{{ parentItem.isASubMenu ? 'Yes' : 'No' }}</dd>
+            
+            <dt class="col-sm-5">Visible to Guests:</dt>
+            <dd class="col-sm-7">{{ parentItem.isVisibleToGuest ? 'Yes' : 'No' }}</dd>
+            
+            <dt class="col-sm-5">Available When Logged Out:</dt>
+            <dd class="col-sm-7">{{ parentItem.isAvailableWhileLoggedOut ? 'Yes' : 'No' }}</dd>
+            
+            <dt class="col-sm-5">Status:</dt>
+            <dd class="col-sm-7">
+              @if (parentItem.dataStatus === 'ACTIVE') {
+                <span class="badge bg-success">Active</span>
+              } @else {
+                <span class="badge bg-danger">Inactive</span>
+              }
+            </dd>
+          </dl>
+        </div>
+
+        <div class="col-md-6">
+          <h3 class="h5 text-muted mb-3">Access Levels</h3>
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <span 
+              *ngFor="let role of getRolesForItem(parentItem)" 
+              class="badge p-1"
+              [ngClass]="{
+                'bg-primary': role === 'Master',
+                'bg-success': role === 'Admin',
+                'bg-info': role === 'User',
+                'bg-warning': role === 'Seller',
+                'bg-secondary': role === 'Guest',
+                'bg-danger': role === 'Customer Care' || role === 'Rider',
+                'bg-dark': role === 'Doctor'
+              }"
+            >
+              <span class="d-none d-sm-inline">{{ role }}</span>
+              <span class="d-inline d-sm-none">{{ role.charAt(0) }}</span>
+            </span>
           </div>
+
+          <div *ngIf="parentItem.createdDate" class="small text-muted">
+            <div>Created: {{ parentItem.createdDate | date:'medium' }}</div>
+            <div *ngIf="parentItem.lastUpdated">Last Updated: {{ parentItem.lastUpdated | date:'medium' }}</div>
+          </div>
+
+          <div *ngIf="parentItem.svgFileDataLink" class="mt-4">
+            <h3 class="h5 text-muted mb-3">SVG Preview</h3>
+            <div class="border rounded p-3 bg-light text-center">
+              <img 
+                [src]="parentItem.svgFileDataLink" 
+                [alt]="parentItem.menuName + ' icon'" 
+                class="img-fluid"
+                style="max-height: 64px; width: auto;"
+              />
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

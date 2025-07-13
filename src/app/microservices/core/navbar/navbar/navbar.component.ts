@@ -47,12 +47,12 @@ export class NavbarComponent implements OnInit {
         if (response.status && response.data) {
           this.navbarItem = response.data;
           
-          // If this item has a parent, load the parent details
-          if (this.navbarItem.parent?.id) {
-            this.loadParentItem(this.navbarItem.parent.id);
-          } else {
-            this.isLoading = false;
+          // Set parent item directly from the response if available
+          if (this.navbarItem.parent) {
+            this.parentItem = this.navbarItem.parent;
           }
+          
+          this.isLoading = false;
         } else {
           this.error = response.message || 'Failed to load navbar item';
           this.isLoading = false;
@@ -96,6 +96,19 @@ export class NavbarComponent implements OnInit {
     if (parentId) {
       this.router.navigate(['/navbar', parentId]);
     }
+  }
+
+  getRolesForItem(item: any): string[] {
+    const roles: string[] = [];
+    if (item.canMasterAccess) roles.push('Master');
+    if (item.canAdminAccess) roles.push('Admin');
+    if (item.canUserAccess) roles.push('User');
+    if (item.canDoctorAccess) roles.push('Doctor');
+    if (item.canSellerAccess) roles.push('Seller');
+    if (item.canRiderAccess) roles.push('Rider');
+    if (item.canCustomerCareAccess) roles.push('Customer Care');
+    if (item.isVisibleToGuest) roles.push('Guest');
+    return roles;
   }
 
   getAccessLevels(item: NavbarItemResponse): string[] {
