@@ -107,7 +107,7 @@ export class NavbarComponent implements OnInit {
     if (item.canDoctorAccess) accessLevels.push('Doctor');
     if (item.canSellerAccess) accessLevels.push('Seller');
     if (item.canRiderAccess) accessLevels.push('Rider');
-    if (item.customerCareAccess) accessLevels.push('Customer Care');
+    if (item.canCustomerCareAccess) accessLevels.push('Customer Care');
     
     return accessLevels.length > 0 ? accessLevels : ['None'];
   }

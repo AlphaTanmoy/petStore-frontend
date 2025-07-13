@@ -272,6 +272,8 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     if (item.canDoctorAccess) roles.push('ROLE_DOCTOR');
     if (item.canSellerAccess) roles.push('ROLE_SELLER');
     if (item.canRiderAccess) roles.push('ROLE_RIDER');
+    if (item.canCustomerCareAccess) roles.push('ROLE_CUSTOMER_CARE');
+    if (item.isVisibleToGuest) roles.push('ROLE_GUEST');
 
     return {
       ...item,
@@ -324,7 +326,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
             'ROLE_DOCTOR': 'canDoctorAccess',
             'ROLE_SELLER': 'canSellerAccess',
             'ROLE_RAIDER': 'canRiderAccess',
-            'ROLE_CUSTOMER_CARE': 'customerCareAccess',
+            'ROLE_CUSTOMER_CARE': 'canCustomerCareAccess',
             'ROLE_GUEST': 'isVisibleToGuest'
           };
           
@@ -370,7 +372,7 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     if (item.canDoctorAccess) accessLevels.push('Doctor');
     if (item.canSellerAccess) accessLevels.push('Seller');
     if (item.canRiderAccess) accessLevels.push('Rider');
-    if (item.customerCareAccess) accessLevels.push('Customer Care');
+    if (item.canCustomerCareAccess) accessLevels.push('Customer Care');
     if (item.isVisibleToGuest) accessLevels.push('Guest');
     
     return accessLevels.join(', ') || 'None';
@@ -391,17 +393,17 @@ export class ViewNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   getRolesForItem(item: NavbarItem): string[] {
     const roles: string[] = [];
-    if (item.canMasterAccess) roles.push('MASTER');
-    if (item.canAdminAccess) roles.push('ADMIN');
-    if (item.canUserAccess) roles.push('USER');
-    if (item.canDoctorAccess) roles.push('DOCTOR');
-    if (item.canSellerAccess) roles.push('SELLER');
-    if (item.canRiderAccess) roles.push('RIDER');
-    if (item.customerCareAccess) roles.push('CUSTOMER_CARE');
-    if (item.isVisibleToGuest) roles.push('GUEST');
+    if (item.canMasterAccess) roles.push('Master');
+    if (item.canAdminAccess) roles.push('Admin');
+    if (item.canUserAccess) roles.push('User');
+    if (item.canDoctorAccess) roles.push('Doctor');
+    if (item.canSellerAccess) roles.push('Seller');
+    if (item.canRiderAccess) roles.push('Rider');
+    if (item.canCustomerCareAccess) roles.push('Customer Care');
+    if (item.isVisibleToGuest) roles.push('Guest');
     
-    return roles.length > 0 ? roles : ['NONE'];
-  }
+    return roles.length > 0 ? roles : ['None'];
+} 
 
 
 

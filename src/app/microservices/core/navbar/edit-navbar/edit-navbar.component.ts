@@ -50,7 +50,6 @@ export class EditNavbarComponent implements OnInit {
       canRiderAccess: [false],
       canCustomerCareAccess: [false],
       isVisibleToGuest: [false],
-      isAvailableWhileLoggedOut: [false],
       svgFileDataLink: ['']
     });
   }
@@ -113,9 +112,8 @@ export class EditNavbarComponent implements OnInit {
             canDoctorAccess: item.canDoctorAccess,
             canSellerAccess: item.canSellerAccess,
             canRiderAccess: item.canRiderAccess,
-            canCustomerCareAccess: item.customerCareAccess,
-            isVisibleToGuest: item.isVisibleToGuest,
-            isAvailableWhileLoggedOut: false, // Default to false as it's not in the response
+            canCustomerCareAccess: item.canCustomerCareAccess,
+            isVisibleToGuest: item.isVisibleToGuest || false,
             svgFileDataLink: item.svgFileDataLink || ''
           });
         }
@@ -203,6 +201,8 @@ export class EditNavbarComponent implements OnInit {
     this.isSubmitting = true;
 
     const formValue = this.navbarForm.value;
+    const isVisibleToGuest = formValue.isVisibleToGuest || false;
+    
     const updateData: EditNavbarRequest = {
       id: this.navbarItemId,
       menuName: formValue.menuName,
@@ -214,8 +214,8 @@ export class EditNavbarComponent implements OnInit {
       canSellerAccess: formValue.canSellerAccess,
       canRiderAccess: formValue.canRiderAccess,
       canCustomerCareAccess: formValue.canCustomerCareAccess,
-      isVisibleToGuest: formValue.isVisibleToGuest,
-      isAvailableWhileLoggedOut: formValue.isAvailableWhileLoggedOut,
+      isVisibleToGuest: isVisibleToGuest,
+      isAvailableWhileLoggedOut: isVisibleToGuest, // Set same as isVisibleToGuest
       svgFileDataLink: formValue.svgFileDataLink || null
     };
 
@@ -227,7 +227,7 @@ export class EditNavbarComponent implements OnInit {
             'Success',
             'Navbar item updated successfully'
           );
-          this.router.navigate(['/navbar/list']);
+          this.router.navigate(['/view-navbar']);
         } else {
           this.popupService.showPopup(
             PopupType.ERROR,

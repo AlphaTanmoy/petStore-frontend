@@ -26,7 +26,7 @@ export interface NavbarItemResponse {
   canDoctorAccess: boolean;
   canSellerAccess: boolean;
   canRiderAccess: boolean;
-  customerCareAccess: boolean;
+  canCustomerCareAccess: boolean;
   isVisibleToGuest: boolean;
   isAssignedToParentMenu: boolean;
   isAvailableWhileLoggedOut?: boolean;

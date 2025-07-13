@@ -157,13 +157,13 @@
                     @for (role of getRolesForItem(item); track role) {
                       <span class="badge" 
                             [ngClass]="{
-                              'bg-primary': role === 'MASTER',
-                              'bg-success': role === 'ADMIN',
-                              'bg-info': role === 'USER',
-                              'bg-warning': role === 'SELLER',
-                              'bg-secondary': role === 'GUEST',
-                              'bg-danger': role === 'RIDER',
-                              'bg-dark': role === 'CUSTOMER_CARE' || role === 'DOCTOR'
+                              'bg-primary': role === 'Master',
+                              'bg-success': role === 'Admin',
+                              'bg-info': role === 'User',
+                              'bg-warning': role === 'Seller',
+                              'bg-secondary': role === 'Guest',
+                              'bg-danger': role === 'Customer Care' || role === 'Rider',
+                              'bg-dark': role === 'Doctor'
                             }"
                             [title]="role">
                         {{ role }}

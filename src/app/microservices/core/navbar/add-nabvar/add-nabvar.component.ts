@@ -44,9 +44,8 @@ export class AddNabvarComponent implements OnInit {
       canDoctorAccess: [false],
       canSellerAccess: [false],
       canRiderAccess: [false],
-      chatUsersAccess: [false],
+      canCustomerCareAccess: [false],
       isVisibleToGuest: [false],
-      isAvailableWhileLoggedOut: [false],
       svgFileDataLink: ['']
     });
   }
@@ -187,17 +186,21 @@ export class AddNabvarComponent implements OnInit {
   }
 
   private submitForm(): void {
+    const isVisibleToGuest = this.navbarForm.get('isVisibleToGuest')?.value || false;
+    
     const formData: AddNavbarRequest = {
       ...this.navbarForm.value,
       svgFileDataLink: this.svgFileUrl,
       canMasterAccess: this.navbarForm.get('canMasterAccess')?.value || false,
-      canCustomerCareAccess: this.navbarForm.get('chatUsersAccess')?.value || false,
+      canCustomerCareAccess: this.navbarForm.get('canCustomerCareAccess')?.value || false,
       menuLink: this.navbarForm.get('doHaveRedirectionLink')?.value 
         ? this.navbarForm.get('menuLink')?.value 
         : null,
       parentId: this.navbarForm.get('isASubMenu')?.value 
         ? this.navbarForm.get('parentId')?.value 
-        : null
+        : null,
+      isVisibleToGuest: isVisibleToGuest,
+      isAvailableWhileLoggedOut: isVisibleToGuest // Set same as isVisibleToGuest
     };
 
     this.navbarService.addNavbarItem(formData).subscribe({
@@ -242,14 +245,14 @@ export class AddNabvarComponent implements OnInit {
       menuLink: '',
       isASubMenu: false,
       parentId: null,
+      canMasterAccess: false,
       canAdminAccess: true,
       canUserAccess: true,
       canDoctorAccess: false,
       canSellerAccess: false,
       canRiderAccess: false,
-      chatUsersAccess: false,
-      isVisibleToGuest: false,
-      isAvailableWhileLoggedOut: false
+      canCustomerCareAccess: false,
+      isVisibleToGuest: false
     });
     
     this.svgFileUrl = null;
