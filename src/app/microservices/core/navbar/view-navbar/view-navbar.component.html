@@ -93,8 +93,8 @@
 
   <!-- Navbar Items Table -->
   <div class="card shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-      <h5 class="mb-0">Navigation Items</h5>
+    <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center py-3">
+      <h5 class="mb-2 mb-md-0">Navigation Items</h5>
       <button 
         class="btn btn-primary btn-sm"
         (click)="router.navigate(['/add-navbar'])"
@@ -105,14 +105,14 @@
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0 table-lg">
         <thead class="table-light">
-          <tr class="table-light">
-            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Icon</th>
-            <th class="ps-3 text-uppercase text-muted fw-bold py-3 fs-6">Menu Name</th>
-            <th class="text-uppercase text-muted fw-bold py-3 fs-6">URL</th>
-            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Roles</th>
-            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Status</th>
-            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Last Updated</th>
-            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Actions</th>
+          <tr>
+            <th class="text-uppercase text-muted fw-bold py-3">Icon</th>
+            <th class="d-none d-md-table-cell text-uppercase text-muted fw-bold py-3">Menu Name</th>
+            <th class="d-none d-lg-table-cell text-uppercase text-muted fw-bold py-3">URL</th>
+            <th class="text-uppercase text-muted fw-bold py-3">Roles</th>
+            <th class="d-none d-sm-table-cell text-uppercase text-muted fw-bold py-3">Status</th>
+            <th class="d-none d-md-table-cell text-uppercase text-muted fw-bold py-3">Last Updated</th>
+            <th class="text-uppercase text-muted fw-bold py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -125,25 +125,29 @@
                     @if (item.svgFileDataLink) {
                       <img [src]="item.svgFileDataLink" [alt]="item.menuName + ' icon'" class="img-fluid" style="width: 28px; height: 28px;">
                     } @else {
-                      <i class="bi bi-question-circle text-muted fs-5"></i>
+                      <i class="bi bi-question-circle text-muted"></i>
                     }
                   </div>
+                  <div class="d-block d-md-none small text-muted mt-1">{{ item.menuName }}</div>
                 </td>
                 
                 <!-- Menu Name -->
-                <td class="ps-3 py-3">{{ item.menuName }}</td>
+                <td class="d-none d-md-table-cell ps-3 py-3">
+                  {{ item.menuName }}
+                </td>
                 
                 <!-- URL -->
-                <td class="py-3">
+                <td class="d-none d-lg-table-cell py-3">
                   @if (item.menuLink) {
                     <a [href]="getFullUrl(item.menuLink)" 
                        target="_blank" 
-                       class="text-primary text-decoration-none"
+                       class="text-primary text-decoration-none text-truncate d-inline-block"
+                       style="max-width: 200px;"
                        [title]="getFullUrl(item.menuLink)">
                       {{ getFullUrl(item.menuLink) }}
                     </a>
                   } @else {
-                    <span class="text-muted">
+                    <span class="text-muted small">
                       <i class="bi bi-x-circle"></i> No URL
                     </span>
                   }
@@ -151,9 +155,9 @@
                 
                 <!-- Roles -->
                 <td class="py-3">
-                  <div class="btn-group" role="group">
+                  <div class="d-flex flex-wrap gap-1">
                     @for (role of getRolesForItem(item); track role) {
-                      <span class="badge p-2 m-1" 
+                      <span class="badge p-1 p-sm-2 mb-1" 
                             [ngClass]="{
                               'bg-primary': role === 'Master',
                               'bg-success': role === 'Admin',
@@ -164,34 +168,38 @@
                               'bg-dark': role === 'Doctor'
                             }"
                             [title]="role">
-                        {{ role }}
+                        <span class="d-none d-sm-inline">{{ role }}</span>
+                        <span class="d-inline d-sm-none">{{ role.charAt(0) }}</span>
                       </span>
                     }
                   </div>
                 </td>
                 
                 <!-- Status -->
-                <td class="py-3">
+                <td class="d-none d-sm-table-cell py-3">
                   @if (item.dataStatus === 'ACTIVE') {
-                    <span class="badge bg-success fs-6">Active</span>
+                    <span class="badge bg-success">Active</span>
                   } @else {
-                    <span class="badge bg-danger fs-6">Inactive</span>
+                    <span class="badge bg-danger">Inactive</span>
                   }
                 </td>
                 
                 <!-- Last Updated -->
-                <td class="py-3">{{ item.updatedAt | date:'medium' }}</td>
+                <td class="d-none d-md-table-cell py-3">
+                  <span class="d-none d-xxl-inline">{{ item.updatedAt | date:'medium' }}</span>
+                  <span class="d-inline d-xxl-none">{{ item.updatedAt | date:'short' }}</span>
+                </td>
                 
                 <!-- Actions -->
                 <td class="py-3">
-                  <div class="d-flex gap-2">
+                  <div class="d-flex gap-1 gap-sm-2">
                     <button class="btn btn-sm btn-outline-primary" 
                             [disabled]="isLoading"
                             (click)="onViewItem($event, item)"
-                            title="View Details">
+                            title="View">
                       <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" 
+                    <button class="btn btn-sm btn-outline-warning" 
                             [disabled]="isLoading"
                             (click)="onEditItem($event, item)"
                             title="Edit">
@@ -224,6 +232,6 @@
       </table>
     </div>
   </div>
-
-  <!-- Infinite scroll will load more items automatically -->
 </div>
+
+<!-- Infinite scroll will load more items automatically -->
