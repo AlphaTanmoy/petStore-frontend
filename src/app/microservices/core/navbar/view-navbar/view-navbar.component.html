@@ -103,16 +103,16 @@
       </button>
     </div>
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table class="table table-hover align-middle mb-0 table-lg">
         <thead class="table-light">
-          <tr>
-            <th class="small text-uppercase text-muted fw-bold">Icon</th>
-            <th class="ps-3 small text-uppercase text-muted fw-bold">Menu Name</th>
-            <th class="small text-uppercase text-muted fw-bold">URL</th>
-            <th class="small text-uppercase text-muted fw-bold">Roles</th>
-            <th class="small text-uppercase text-muted fw-bold">Status</th>
-            <th class="small text-uppercase text-muted fw-bold">Last Updated</th>
-            <th class="small text-uppercase text-muted fw-bold">Actions</th>
+          <tr class="table-light">
+            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Icon</th>
+            <th class="ps-3 text-uppercase text-muted fw-bold py-3 fs-6">Menu Name</th>
+            <th class="text-uppercase text-muted fw-bold py-3 fs-6">URL</th>
+            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Roles</th>
+            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Status</th>
+            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Last Updated</th>
+            <th class="text-uppercase text-muted fw-bold py-3 fs-6">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -120,23 +120,21 @@
             @for (item of filteredNavbarItems; track item.id) {
               <tr class="cursor-pointer">
                 <!-- Icon Column -->
-                <td class="text-center">
+                <td class="text-center py-3">
                   <div class="d-flex justify-content-center">
                     @if (item.svgFileDataLink) {
-                      <img [src]="item.svgFileDataLink" [alt]="item.menuName + ' icon'" class="menu-icon" style="width: 24px; height: 24px;">
+                      <img [src]="item.svgFileDataLink" [alt]="item.menuName + ' icon'" class="img-fluid" style="width: 28px; height: 28px;">
                     } @else {
-                      <i class="bi bi-question-circle text-muted"></i>
+                      <i class="bi bi-question-circle text-muted fs-5"></i>
                     }
                   </div>
                 </td>
                 
                 <!-- Menu Name -->
-                <td class="ps-3 fw-medium">
-                  {{ item.menuName || 'N/A' }}
-                </td>
+                <td class="ps-3 py-3">{{ item.menuName }}</td>
                 
                 <!-- URL -->
-                <td>
+                <td class="py-3">
                   @if (item.menuLink) {
                     <a [href]="getFullUrl(item.menuLink)" 
                        target="_blank" 
@@ -152,10 +150,10 @@
                 </td>
                 
                 <!-- Roles -->
-                <td>
-                  <div class="d-flex flex-wrap gap-1">
+                <td class="py-3">
+                  <div class="btn-group" role="group">
                     @for (role of getRolesForItem(item); track role) {
-                      <span class="badge" 
+                      <span class="badge p-2 m-1" 
                             [ngClass]="{
                               'bg-primary': role === 'Master',
                               'bg-success': role === 'Admin',
@@ -173,17 +171,19 @@
                 </td>
                 
                 <!-- Status -->
-                <td>
-                  <span class="badge" [ngClass]="item.dataStatus === 'ACTIVE' ? 'bg-success' : 'bg-secondary'">
-                    {{ item.dataStatus || 'N/A' }}
-                  </span>
+                <td class="py-3">
+                  @if (item.dataStatus === 'ACTIVE') {
+                    <span class="badge bg-success fs-6">Active</span>
+                  } @else {
+                    <span class="badge bg-danger fs-6">Inactive</span>
+                  }
                 </td>
                 
                 <!-- Last Updated -->
-                <td>{{ formatDate(item.updatedAt) }}</td>
+                <td class="py-3">{{ item.updatedAt | date:'medium' }}</td>
                 
                 <!-- Actions -->
-                <td>
+                <td class="py-3">
                   <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-outline-primary" 
                             [disabled]="isLoading"
